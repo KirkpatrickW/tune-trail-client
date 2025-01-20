@@ -2,6 +2,9 @@ import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import { Animated, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import TrackPlayer from "react-native-track-player";
+import { PlayPauseButton } from "./PlayerControls";
+import { PlayerProgressBar } from "./PlayerProgressBar";
 
 const BACKGROUND_COLOR = "#6b2367";
 
@@ -21,7 +24,6 @@ export const FloatingPlayer = () => {
 
     const [isPlayerToggleDisabled, setIsPlayerToggleDisabled] = useState(false);
     const [isPlayerActive, setIsPlayerActive] = useState(false);
-    const [isMusicPlaying, setIsMusicPlaying] = useState(false);
 
     const animWidth = useRef(new Animated.Value(DEFAULT_WIDTH)).current;
     const animBorderRadius = useRef(new Animated.Value(DEFAULT_BORDER_RADIUS)).current;
@@ -75,12 +77,21 @@ export const FloatingPlayer = () => {
         }, 1);
     };
 
-    const togglePlayer = () => {
+    const togglePlayer = async () => {
         setIsPlayerToggleDisabled(true);
-        if (isPlayerActive) {
-            animatePlayerToggle(DEFAULT_WIDTH, DEFAULT_BORDER_RADIUS);
-        } else {
+
+        if (!isPlayerActive) {
+            await TrackPlayer.load({
+                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                artist: "The Human League",
+                title: "Don't You Want Me"
+            });
+            await TrackPlayer.play();
+
             animatePlayerToggle(PLAYER_WIDTH, PLAYER_BORDER_RADIUS);
+        } else {
+            TrackPlayer.reset();
+            animatePlayerToggle(DEFAULT_WIDTH, DEFAULT_BORDER_RADIUS);
         }
     };
 
@@ -91,10 +102,6 @@ export const FloatingPlayer = () => {
             togglePlayer();
         }
     }
-
-    const togglePlayPause = () => {
-        setIsMusicPlaying((prevState) => !prevState);
-    };
 
     return (
         <View style={styles.container}>
@@ -114,25 +121,27 @@ export const FloatingPlayer = () => {
                     {!isPlayerActive ? (
                         <FontAwesome name="globe" size={55} color="#FFF" />
                     ) : (
-                        <View style={styles.playerContent}>
-                            <Image
-                                source={{
-                                    uri: "https://upload.wikimedia.org/wikipedia/en/thumb/c/ce/Dare-cover.png/220px-Dare-cover.png",
-                                }}
-                                style={styles.albumArt}/>
-                            <View style={styles.textContainer}>
-                                <Text style={styles.songName}>Don't You Want Me</Text>
-                                <Text style={styles.artistName}>The Human League</Text>
+                        <>
+                            <View style={styles.playerContent}>
+                                <Image
+                                    source={{
+                                        uri: "https://upload.wikimedia.org/wikipedia/en/thumb/c/ce/Dare-cover.png/220px-Dare-cover.png",
+                                    }}
+                                    style={styles.albumArt}/>
+                                <View style={styles.textContainer}>
+                                    <Text style={styles.songName}>Don't You Want Me</Text>
+                                    <Text style={styles.artistName}>The Human League</Text>
+                                </View>
+                                <View style={styles.iconGroup}>
+                                    <PlayPauseButton style={styles.iconWrapper} iconSize={20}/>
+
+                                    <Pressable onPress={togglePlayer} style={styles.iconWrapper} disabled={isPlayerToggleDisabled}>
+                                        <FontAwesome name="stop" size={20} color="#FFF" />
+                                    </Pressable>
+                                </View>
                             </View>
-                            <View style={styles.iconGroup}>
-                                <Pressable onPress={togglePlayPause} style={styles.iconWrapper}>
-                                    <FontAwesome name={isMusicPlaying ? "pause" : "play"} size={20} color="#FFF" />
-                                </Pressable>
-                                <Pressable onPress={togglePlayer} style={styles.iconWrapper} disabled={isPlayerToggleDisabled}>
-                                    <FontAwesome name="stop" size={20} color="#FFF" />
-                                </Pressable>
-                            </View>
-                        </View>
+                            <PlayerProgressBar style={styles.progressBarWrapper} displayOnly={true} />
+                        </>
                     )} 
                 </Animated.View>
             </AnimatedTouchableOpacity>
@@ -164,6 +173,7 @@ const styles = StyleSheet.create({
     },
     locationContainer: {
         backgroundColor: "#171717",
+        elevation: 10,
         height: DEFAULT_WIDTH,
         justifyContent: "center",
         alignItems: "center",
@@ -222,4 +232,10 @@ const styles = StyleSheet.create({
     iconWrapper: {
         marginLeft: 15,
     },
+    progressBarWrapper: {
+        position: "absolute",
+        bottom: -10,
+        left: 10,
+        right: 10,
+    }
 })

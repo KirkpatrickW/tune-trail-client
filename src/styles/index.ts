@@ -5,3 +5,10 @@ export const defaultStyles = StyleSheet.create({
         flex: 1
     }
 });
+
+export const utilsStyles = StyleSheet.create({
+    slider: {
+        height: 7,
+        borderRadius: 16
+    }
+});
