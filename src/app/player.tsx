@@ -4,7 +4,6 @@ import { PlayerControls } from "@/components/player/PlayerControls";
 import { PlayerProgressBar } from "@/components/player/PlayerProgressBar";
 import { PlayerVolumeBar } from "@/components/player/PlayerVolumeBar";
 import { defaultStyles } from "@/styles";
-import { StatusBar } from "expo-status-bar";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useActiveTrack } from "react-native-track-player";
@@ -20,7 +19,6 @@ const PlayerScreen = () => {
 
     return (<View style={styles.overlayContainer}>
         <View style={styles.topBar}>
-            <StatusBar style="light" />
             <DismissPlayerSymbol/>
             <LocationControls style={{ marginTop: top + 20 }} />
         </View>
