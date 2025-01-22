@@ -41,15 +41,6 @@ export const mapStyle = [
         ]
     },
     {
-        "featureType": "administrative",
-        "elementType": "labels",
-        "stylers": [
-            {
-                "visibility": "off"
-            }
-        ]
-    },
-    {
         "featureType": "administrative.country",
         "elementType": "labels.text.fill",
         "stylers": [
@@ -67,6 +58,24 @@ export const mapStyle = [
         ]
     },
     {
+        "featureType": "administrative.land_parcel",
+        "elementType": "labels",
+        "stylers": [
+            {
+                "visibility": "off"
+            }
+        ]
+    },
+    {
+        "featureType": "administrative.locality",
+        "elementType": "labels",
+        "stylers": [
+            {
+                "visibility": "off"
+            }
+        ]
+    },
+    {
         "featureType": "administrative.locality",
         "elementType": "labels.text.fill",
         "stylers": [
@@ -76,7 +85,7 @@ export const mapStyle = [
         ]
     },
     {
-        "featureType": "landscape",
+        "featureType": "administrative.neighborhood",
         "elementType": "labels",
         "stylers": [
             {
@@ -140,15 +149,6 @@ export const mapStyle = [
     },
     {
         "featureType": "road",
-        "elementType": "labels",
-        "stylers": [
-            {
-                "visibility": "off"
-            }
-        ]
-    },
-    {
-        "featureType": "road",
         "elementType": "labels.text.fill",
         "stylers": [
             {
@@ -194,7 +194,6 @@ export const mapStyle = [
     },
     {
         "featureType": "transit",
-        "elementType": "labels",
         "stylers": [
             {
                 "visibility": "off"
@@ -216,15 +215,6 @@ export const mapStyle = [
         "stylers": [
             {
                 "color": "#000000"
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "labels",
-        "stylers": [
-            {
-                "visibility": "off"
             }
         ]
     },

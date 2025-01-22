@@ -1,25 +1,26 @@
 import { mapStyle } from "@/constants/mapStyle";
-import { Locality } from "@/types/maps/locality.types";
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from "react-native";
+import { Clusterer, supercluster } from "react-native-clusterer";
 import MapView, { PROVIDER_GOOGLE, Region } from "react-native-maps";
+import { LocalityCluster } from "./LocalityCluster";
 import { LocalityMarker } from "./LocalityMarker";
 
-type Localities = Locality[];
-
-const ZOOM_THRESHOLD = 0.2;
-
 export const Maps = () => {
-    const initialRegion: Region = {
+    const [pointFeatures, setPointFeatures] = useState<supercluster.PointFeature<any>[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [region, setRegion] = useState<Region>({
         latitude: 37.7749,
         longitude: -122.4194,
-        latitudeDelta: 0.1,
-        longitudeDelta: 0.1,
-    };
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+    });
 
-    const [localities, setLocalities] = useState<Localities>([]);
-    const [region, setRegion] = useState(initialRegion);
-    const [loading, setLoading] = useState(false);  // Track loading state
+    const { width, height } = Dimensions.get('window');
+
+    const getZoomLevel = (longitudeDelta: number) => {
+        return Math.round(Math.log(360 / longitudeDelta) / Math.LN2);
+    };
 
     const fetchLocalities = async (region: Region) => {
         const { latitude, longitude, latitudeDelta, longitudeDelta } = region;
@@ -30,8 +31,9 @@ export const Maps = () => {
             longitudeDelta,
         });
 
-        console.log(`Latitude Delta: ${latitudeDelta}, Zoom Threshold: ${ZOOM_THRESHOLD}`)
-        if (latitudeDelta < ZOOM_THRESHOLD) {
+        const zoomLevel = getZoomLevel(latitudeDelta);
+        console.log("Zoom level:", zoomLevel);
+        if (zoomLevel >= 8) {
             const bounds = {
                 north: latitude + latitudeDelta / 2,
                 south: latitude - latitudeDelta / 2,
@@ -39,7 +41,7 @@ export const Maps = () => {
                 west: longitude - longitudeDelta / 2,
             };
             console.log('Bounds:', bounds);
-    
+
             const query = `
             [out:json];
             (
@@ -51,32 +53,37 @@ export const Maps = () => {
             out;`;
             const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
             console.log('Fetching data from:', url);
-    
-            setLoading(true);  // Set loading to true before fetching data
+
+            setLoading(true);
             try {
                 const response = await fetch(url);
                 const data = await response.json();
                 console.log('Raw data received:', data);
-          
+
                 if (data.elements) {
-                    const extractedLocalities: Localities = data.elements
+                    const extractedPointFeatures = data.elements
                         .filter((element: any) => element.tags?.name)
                         .map((element: any) => ({
-                            name: element.tags.name,
-                            latitude: element.lat,
-                            longitude: element.lon
+                            type: 'Feature',
+                            properties: { name: element.tags.name },
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [element.lon, element.lat],
+                            },
                         }));
-                    console.log('Extracted localities:', extractedLocalities);
-                    
-                    setLocalities(extractedLocalities);
+                    console.log('Extracted point features:', extractedPointFeatures);
+
+                    setPointFeatures(extractedPointFeatures);
                 }
             } catch (error) {
                 console.error('Error fetching localities:', error);
             } finally {
-                setLoading(false);  // Set loading to false after fetching data
+                setLoading(false);
             }
+        } else {
+            setPointFeatures([]);
         }
-    }
+    };
 
     return (
         <View style={{ flex: 1 }}>
@@ -95,16 +102,24 @@ export const Maps = () => {
                 showsMyLocationButton={false}
                 showsCompass={false}
                 onRegionChangeComplete={(region) => {
-                    fetchLocalities(region);
                     setRegion(region);
+                    fetchLocalities(region);
                 }}
                 rotateEnabled={false}
-                initialRegion={initialRegion}
                 scrollEnabled={!loading}
-                zoomEnabled={!loading}>
-                {localities.map((locality, index) => (
-                    <LocalityMarker locality={locality} index={index}/>
-                ))}
+                zoomEnabled={!loading}
+                initialRegion={region}>
+                <Clusterer
+                    data={pointFeatures}
+                    mapDimensions={{ width, height }}
+                    region={region}
+                    renderItem={(item, index) => {
+                        return item.properties.cluster ? (
+                            <LocalityCluster clusterFeature={item} index={index} />
+                        ) : (
+                            <LocalityMarker pointFeature={item} index={index} />
+                        );
+                    }}/>
             </MapView>
         </View>
     );
