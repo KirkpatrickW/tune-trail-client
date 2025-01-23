@@ -20,7 +20,7 @@ const App = () => {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <RootNavigation />
         
-        <StatusBar style="auto" />
+        <StatusBar style="light" />
       </GestureHandlerRootView>
     </SafeAreaProvider>
   );

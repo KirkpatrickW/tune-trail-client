@@ -1,11 +1,11 @@
+import { Maps } from '@/components/maps/Maps';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 const IndexScreen = () => {
   return (
     <View style={styles.indexContainer}>
-      {/* You can customize this with your content */}
-      <Text>Welcome to the Index Screen!</Text>
+      <Maps/>
     </View>
   );
 };
@@ -13,8 +13,7 @@ const IndexScreen = () => {
 const styles = StyleSheet.create({
   indexContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "black"
   },
 });
 

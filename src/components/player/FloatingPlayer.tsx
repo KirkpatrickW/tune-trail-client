@@ -152,9 +152,12 @@ export const FloatingPlayer = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        position: "relative",
+        position: "absolute",
         justifyContent: "center",
         alignItems: "center",
+        left: 8,
+        right: 8,
+        bottom: 10,
     },
     playerContainer: {
         backgroundColor: BACKGROUND_COLOR,
