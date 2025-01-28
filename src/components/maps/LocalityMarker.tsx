@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { supercluster } from "react-native-clusterer";
 import { Marker } from "react-native-maps";
@@ -20,7 +21,13 @@ export const LocalityMarker = ({ pointFeature, index }: LocalityMarkerProps) => 
 
     return (
         <Marker
-            onPress={() => { alert(pointFeature.properties.name) }}
+            onPress={() => { router.push({
+                pathname: "/localities/[id]",
+                params: { 
+                    id: pointFeature.properties.id,
+                    name: pointFeature.properties.name
+                }
+            }) }}
             key={index}
             coordinate={{
                 latitude: pointFeature.geometry.coordinates[1],

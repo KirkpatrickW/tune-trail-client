@@ -7,6 +7,11 @@ const ScreensNavigation = () => {
         <>
             <Stack>
                 <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="localities/[id]" options={{
+                    animation: "fade",
+                    animationDuration: 400,
+                    headerShown: false,
+                }}/>
             </Stack>
         
             <FloatingPlayer />
