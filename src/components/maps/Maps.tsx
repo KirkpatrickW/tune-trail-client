@@ -10,10 +10,10 @@ export const Maps = () => {
     const [pointFeatures, setPointFeatures] = useState<supercluster.PointFeature<any>[]>([]);
     const [loading, setLoading] = useState(false);
     const [region, setRegion] = useState<Region>({
-        latitude: 37.7749,
-        longitude: -122.4194,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
+        latitude: 54.747892040571315, 
+        latitudeDelta: 0.11736790078042958, 
+        longitude: -6.019373741000891, 
+        longitudeDelta: 0.09301867336034775
     });
 
     const { width, height } = Dimensions.get('window');
@@ -42,39 +42,20 @@ export const Maps = () => {
             };
             console.log('Bounds:', bounds);
 
-            const query = `
-            [out:json];
-            (
-                node["place"="city"]( ${bounds.south}, ${bounds.west}, ${bounds.north}, ${bounds.east} );
-                node["place"="town"]( ${bounds.south}, ${bounds.west}, ${bounds.north}, ${bounds.east} );
-                node["place"="village"]( ${bounds.south}, ${bounds.west}, ${bounds.north}, ${bounds.east} );
-                node["place"="hamlet"]( ${bounds.south}, ${bounds.west}, ${bounds.north}, ${bounds.east} );
-            );
-            out;`;
-            const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+            const url = `http://10.0.2.2:8000/localities?north=${bounds.north}&south=${bounds.south}&east=${bounds.east}&west=${bounds.west}`;
             console.log('Fetching data from:', url);
 
             setLoading(true);
             try {
                 const response = await fetch(url);
-                const data = await response.json();
-                console.log('Raw data received:', data);
-
-                if (data.elements) {
-                    const extractedPointFeatures = data.elements
-                        .filter((element: any) => element.tags?.name)
-                        .map((element: any) => ({
-                            type: 'Feature',
-                            properties: { name: element.tags.name },
-                            geometry: {
-                                type: 'Point',
-                                coordinates: [element.lon, element.lat],
-                            },
-                        }));
-                    console.log('Extracted point features:', extractedPointFeatures);
-
-                    setPointFeatures(extractedPointFeatures);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch localities: ${response.statusText}`);
                 }
+
+                const data = await response.json();
+                console.log("Data received from backend:", data);
+
+                setPointFeatures(data);
             } catch (error) {
                 console.error('Error fetching localities:', error);
             } finally {

@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         position: "absolute",
-        bottom: 40,
+        bottom: 20,
     },
     playerContent: {
         flexDirection: "row",
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         position: "absolute",
-        bottom: 40,
+        bottom: 20,
     },
     locationContent: {
         width: "100%",
