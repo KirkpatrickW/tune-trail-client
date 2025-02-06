@@ -9,38 +9,38 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 SplashScreen.preventAutoHideAsync();
 
 const App = () => {
-  const handleTrackPlayerLoaded = useCallback(() => {
-    SplashScreen.hideAsync();
-  }, []);
-  useSetupTrackPlayer({ onLoad: handleTrackPlayerLoaded });
-  useLogTrackPlayerState();
+	const handleTrackPlayerLoaded = useCallback(() => {
+		SplashScreen.hideAsync();
+	}, []);
+	useSetupTrackPlayer({ onLoad: handleTrackPlayerLoaded });
+	useLogTrackPlayerState();
 
-  return (
-    <SafeAreaProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <RootNavigation />
-        
-        <StatusBar style="light" />
-      </GestureHandlerRootView>
-    </SafeAreaProvider>
-  );
+	return (
+		<SafeAreaProvider>
+			<GestureHandlerRootView style={{ flex: 1 }}>
+				<RootNavigation />
+
+				<StatusBar style="light" />
+			</GestureHandlerRootView>
+		</SafeAreaProvider>
+	);
 };
 
 const RootNavigation = () => {
-  return (
-    <Stack>
-      <Stack.Screen name="(screens)" options={{ headerShown: false}}/>
-      
-      <Stack.Screen name="player" options={{
-        presentation: "card",
-        gestureEnabled: true,
-        gestureDirection: "vertical",
-        animation: "slide_from_bottom",
-        animationDuration: 400,
-        headerShown: false,
-      }}/>
-    </Stack>
-  );
+	return (
+		<Stack>
+			<Stack.Screen name="(screens)" options={{ headerShown: false }} />
+
+			<Stack.Screen name="player" options={{
+				presentation: "card",
+				gestureEnabled: true,
+				gestureDirection: "vertical",
+				animation: "slide_from_bottom",
+				animationDuration: 400,
+				headerShown: false,
+			}} />
+		</Stack>
+	);
 };
 
 export default App;
