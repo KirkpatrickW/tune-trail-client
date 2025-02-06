@@ -11,9 +11,14 @@ const ScreensNavigation = () => {
                     animation: "fade",
                     animationDuration: 400,
                     headerShown: false,
-                }}/>
+                }} />
+                <Stack.Screen name="tracks/search-tracks-modal" options={{
+                    presentation: "transparentModal",
+                    headerShown: false,
+                    animation: "slide_from_bottom"
+                }} />
             </Stack>
-        
+
             <FloatingPlayer />
         </>
     );
