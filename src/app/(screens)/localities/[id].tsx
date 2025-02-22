@@ -1,55 +1,202 @@
+import { localitiesService } from '@/api/localitiesService';
+import { TrackType } from '@/api/types/searchTracksResponse';
+import { SearchTracksModal } from "@/components/tracks/SearchTracksModal";
+import { FontAwesome } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const LocalityScreen = () => {
-	const { id, name } = useLocalSearchParams();
+	const { id, name, strHasTracks } = useLocalSearchParams();
+	const hasTracks = strHasTracks ? JSON.parse(strHasTracks as string) : false;
+	const insets = useSafeAreaInsets();
 	const router = useRouter();
 
-	return (
-		<View style={styles.container}>
-			<View style={styles.content}>
-				<Text style={styles.title}>Locality Details for {name}</Text>
-				<Text>ID: {id}</Text>
+	const containerBackgroundColor = hasTracks ? "#6b2367" : "#171717";
+	const headerBackgroundColor = hasTracks ? "#7e2979" : "#242424";
 
-				<TouchableOpacity onPress={() => router.push({ pathname: '/tracks/search-tracks-modal', params: { name: name } })} style={styles.button}>
-					<Text style={styles.buttonText}>Open Search Modal</Text>
-				</TouchableOpacity>
+	const [isModalVisible, setIsModalVisible] = useState(false);
+	const [tracks, setTracks] = useState<TrackType[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [isRefreshing, setIsRefreshing] = useState(false);
+
+	const fetchTracks = async () => {
+		try {
+			const response = await localitiesService.getTracksInLocality(id as string);
+			setTracks(response.data);
+		} catch (error) {
+			console.error('Error fetching tracks:', error);
+		} finally {
+			setIsLoading(false);
+			setIsRefreshing(false);
+		}
+	};
+
+	const handleRefresh = () => {
+		setIsRefreshing(true);
+		fetchTracks();
+	};
+
+	useEffect(() => {
+		fetchTracks();
+	}, [id]);
+
+	return (
+		<>
+			<View style={[styles.container, { backgroundColor: containerBackgroundColor }]}>
+				<View style={[styles.header, {
+					paddingTop: insets.top,
+					height: 80 + insets.top,
+					backgroundColor: headerBackgroundColor
+				}]}>
+					<TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+						<FontAwesome name="chevron-left" size={20} color="white" />
+					</TouchableOpacity>
+					<Text style={styles.headerTitle}>{name}</Text>
+					<TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.backButton}>
+						<FontAwesome name="plus" size={20} color="white" />
+					</TouchableOpacity>
+				</View>
+
+				<View style={styles.flatListContentContainer}>
+					<FlatList
+						data={tracks}
+						refreshControl={
+							<RefreshControl
+								refreshing={isRefreshing}
+								onRefresh={handleRefresh}
+								tintColor="#fff"
+								titleColor="#fff"
+								progressBackgroundColor={headerBackgroundColor}
+							/>
+						}
+						ListEmptyComponent={
+							<View style={styles.flatListEmptyContainer}>
+								{isLoading ? (
+									<ActivityIndicator size="large" color="#fff" />
+								) : (
+									<View style={styles.flatListTextContainer}>
+										<Text style={styles.flatListTitle}>This stage is all yours</Text>
+										<Text style={styles.flatListSubtitle}>{name}'s playlist is currently powered by awkward silence - want to fix that?</Text>
+									</View>
+								)}
+							</View>
+						}
+						keyExtractor={(item) => item.spotify_id}
+						renderItem={({ item }) => (
+							<View style={styles.trackItem}>
+								<FastImage
+									source={{ uri: item.cover.small || item.cover.medium || item.cover.large }}
+									style={styles.trackImage}
+								/>
+								<View style={styles.trackInfo}>
+									<Text style={styles.trackTitle} numberOfLines={1}>
+										{item.name}
+									</Text>
+									<Text style={styles.trackArtist} numberOfLines={1}>
+										{item.artists.join(", ")}
+									</Text>
+								</View>
+							</View>
+						)}
+						indicatorStyle="white"
+						onEndReachedThreshold={0.5}
+						contentContainerStyle={{ flexGrow: 1 }}
+					/>
+				</View>
 			</View>
-		</View>
+			<SearchTracksModal
+				isVisible={isModalVisible}
+				onClose={() => setIsModalVisible(false)} name={name.toString()} />
+		</>
 	);
 };
 
 const styles = StyleSheet.create({
 	container: {
+		flex: 1
+	},
+	header: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		paddingHorizontal: 20,
+		elevation: 10,
+		position: 'relative',
+		zIndex: 10,
+	},
+	backButton: {
+		padding: 10,
+	},
+	headerTitle: {
+		fontSize: 22,
+		fontWeight: 'bold',
+		color: 'white',
+		textTransform: 'uppercase',
+		textAlign: 'center',
+		flex: 1,
+	},
+	addButton: {
+		width: 32,
+		height: 32,
+		borderRadius: 16,
+		backgroundColor: 'white',
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	flatListContentContainer: {
+		flex: 1,
+		paddingHorizontal: 24,
+	},
+	flatListEmptyContainer: {
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
-		backgroundColor: '#fff',
 	},
-	content: {
-		width: '80%',
-		padding: 20,
-		backgroundColor: '#f0f0f0',
-		borderRadius: 10,
-		shadowColor: '#000',
-		shadowOffset: { width: 0, height: 4 },
-		shadowOpacity: 0.2,
-		shadowRadius: 5,
-		elevation: 5,
+	flatListTextContainer: {
+		justifyContent: "center",
+		alignItems: "center",
 	},
-	title: {
+	flatListTitle: {
 		fontSize: 24,
-		fontWeight: 'bold',
+		color: "#fff",
+		fontWeight: "bold",
 	},
-	button: {
-		marginTop: 20,
+	flatListSubtitle: {
+		fontSize: 16,
+		color: "#fff",
+		opacity: 0.6,
+		textAlign: "center",
+		maxWidth: 300,
+	},
+	trackItem: {
+		flexDirection: "row",
+		alignItems: "center",
 		padding: 10,
-		backgroundColor: '#007BFF',
-		borderRadius: 5,
+		borderBottomWidth: 1,
+		borderBottomColor: "#7e2979",
+		justifyContent: "space-between",
 	},
-	buttonText: {
-		color: '#fff',
-		fontWeight: 'bold',
+	trackImage: {
+		width: 50,
+		height: 50,
+		borderRadius: 5,
+		marginRight: 10,
+	},
+	trackInfo: {
+		flex: 1,
+	},
+	trackTitle: {
+		color: "#fff",
+		fontSize: 16,
+		fontWeight: "bold",
+	},
+	trackArtist: {
+		color: "#fff",
+		opacity: 0.6,
+		fontSize: 14,
 	},
 });
 
