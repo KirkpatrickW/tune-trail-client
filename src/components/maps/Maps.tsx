@@ -1,3 +1,4 @@
+import { localitiesService } from "@/api/localitiesService";
 import { mapStyle } from "@/constants/mapStyle";
 import { useState } from "react";
 import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from "react-native";
@@ -10,9 +11,9 @@ export const Maps = () => {
     const [pointFeatures, setPointFeatures] = useState<supercluster.PointFeature<any>[]>([]);
     const [loading, setLoading] = useState(false);
     const [region, setRegion] = useState<Region>({
-        latitude: 54.747892040571315, 
-        latitudeDelta: 0.11736790078042958, 
-        longitude: -6.019373741000891, 
+        latitude: 54.747892040571315,
+        latitudeDelta: 0.11736790078042958,
+        longitude: -6.019373741000891,
         longitudeDelta: 0.09301867336034775
     });
 
@@ -42,20 +43,10 @@ export const Maps = () => {
             };
             console.log('Bounds:', bounds);
 
-            const url = `http://10.0.2.2:8000/localities?north=${bounds.north}&south=${bounds.south}&east=${bounds.east}&west=${bounds.west}`;
-            console.log('Fetching data from:', url);
-
             setLoading(true);
             try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch localities: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                console.log("Data received from backend:", data);
-
-                setPointFeatures(data);
+                const getLocalitiesResponse = await localitiesService.getLocalities(bounds.north, bounds.east, bounds.south, bounds.west);
+                setPointFeatures(getLocalitiesResponse.data);
             } catch (error) {
                 console.error('Error fetching localities:', error);
             } finally {
@@ -73,7 +64,7 @@ export const Maps = () => {
                     <Text style={styles.loadingText}><ActivityIndicator size="small" color="#ffffff" /> Loading Localities...</Text>
                 </View>
             )}
-            <MapView 
+            <MapView
                 style={{ width: '100%', height: '100%' }}
                 provider={PROVIDER_GOOGLE}
                 customMapStyle={mapStyle}
@@ -100,7 +91,7 @@ export const Maps = () => {
                         ) : (
                             <LocalityMarker pointFeature={item} index={index} />
                         );
-                    }}/>
+                    }} />
             </MapView>
         </View>
     );
