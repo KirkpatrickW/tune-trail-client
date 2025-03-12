@@ -20,7 +20,7 @@ export const localitiesService = {
         return await apiClient.get<LocalityTrack[]>(`${BASE_URL}/${localityId}/tracks`);
     },
     addTrackToLocality: async (localityId: string, spotifyTrackId: string): Promise<AxiosResponse<{ message: string }>> => {
-        return await apiClient.put<{ message: string }>(`${BASE_URL}`, {
+        return await apiClient.put<{ message: string }>(`${BASE_URL}/tracks`, {
             locality_id: localityId,
             spotify_track_id: spotifyTrackId
         });

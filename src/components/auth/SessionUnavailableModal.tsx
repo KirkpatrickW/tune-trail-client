@@ -7,6 +7,7 @@ interface LogoutModalProps {
     onClose: () => void;
 }
 
+// TODO: This needs redone so that it is not a true modal, similar to the rest.
 const SessionUnavailableModal: React.FC<LogoutModalProps> = ({ visible, onClose }) => {
     return (
         <Modal

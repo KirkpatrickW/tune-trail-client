@@ -1,5 +1,7 @@
+import { localitiesService } from '@/api/localitiesService';
 import { tracksService } from '@/api/tracksService';
 import { TrackType } from '@/api/types/searchTracksResponse';
+import { useAuth } from '@/context/AuthContext';
 import { FontAwesome6 } from "@expo/vector-icons";
 import axios, { CancelTokenSource } from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
@@ -20,17 +22,18 @@ import FastImage from 'react-native-fast-image';
 interface LocalityDetails {
     localityId: string;
     name: string;
+    existingSpotifyTrackIds: string[];
 }
 
 interface SearchTracksModalProps {
     isVisible: boolean;
     onClose: () => void;
+    onTrackAdded: () => void;
     localityDetails: LocalityDetails;
 }
 
-export const SearchTracksModal = ({ isVisible, onClose, localityDetails }: SearchTracksModalProps) => {
-    const { localityId, name } = localityDetails;
-    const existingTrackIds: string[] = []
+export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDetails }: SearchTracksModalProps) => {
+    const { localityId, name, existingSpotifyTrackIds } = localityDetails;
 
     const [searchText, setSearchText] = useState("");
     const [tracks, setTracks] = useState<TrackType[]>([]);
@@ -38,6 +41,8 @@ export const SearchTracksModal = ({ isVisible, onClose, localityDetails }: Searc
     const [nextOffset, setNextOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [loadingTrack, setLoadingTrack] = useState<string | null>(null);
+
+    const { isAuthenticated } = useAuth();
 
     const cancelTokenSourceRef = useRef<CancelTokenSource | null>(null);
 
@@ -65,6 +70,20 @@ export const SearchTracksModal = ({ isVisible, onClose, localityDetails }: Searc
         setIsLoading(false);
     };
 
+    const handleAddTrack = async (track: TrackType) => {
+        const track_spotify_id = track.spotify_id
+
+        setLoadingTrack(track_spotify_id);
+
+        try {
+            await localitiesService.addTrackToLocality(localityId, track_spotify_id);
+            onTrackAdded();
+            closeModal();
+        } catch (error) {
+            setLoadingTrack(null);
+        }
+    };
+
     const resetSearchState = () => {
         if (cancelTokenSourceRef.current) cancelTokenSourceRef.current.cancel();
         setTracks([]);
@@ -82,14 +101,6 @@ export const SearchTracksModal = ({ isVisible, onClose, localityDetails }: Searc
         setSearchText(input);
     };
 
-    const handleAddTrack = (track: TrackType) => {
-        setLoadingTrack(track.spotify_id);
-        setTimeout(() => {
-            setLoadingTrack(null);
-            closeModal();
-        }, 2000);
-    };
-
     useEffect(() => {
         if (searchText.length > 0) {
             fetchTracks();
@@ -103,8 +114,10 @@ export const SearchTracksModal = ({ isVisible, onClose, localityDetails }: Searc
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        if (isVisible) {
-            openModal()
+        if (isVisible && isAuthenticated) {
+            openModal();
+        } else {
+            onClose();
         }
     }, [isVisible]);
 
@@ -136,6 +149,7 @@ export const SearchTracksModal = ({ isVisible, onClose, localityDetails }: Searc
                 useNativeDriver: true,
             }),
         ]).start(() => {
+            setLoadingTrack(null);
             clearSearch();
             onClose();
         });
@@ -208,7 +222,7 @@ export const SearchTracksModal = ({ isVisible, onClose, localityDetails }: Searc
                                 <View style={styles.addTrackButtonWrapper}>
                                     {loadingTrack === item.spotify_id ? (
                                         <ActivityIndicator size="small" color="#fff" />
-                                    ) : existingTrackIds.includes(item.spotify_id) ? (
+                                    ) : existingSpotifyTrackIds.includes(item.spotify_id) ? (
                                         <View style={styles.addedTrackButton}>
                                             <FontAwesome6 name="check" size={12} color="#fff" />
                                         </View>
