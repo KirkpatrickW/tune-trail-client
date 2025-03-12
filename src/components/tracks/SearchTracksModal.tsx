@@ -17,21 +17,27 @@ import {
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 
+interface LocalityDetails {
+    localityId: string;
+    name: string;
+}
+
 interface SearchTracksModalProps {
     isVisible: boolean;
     onClose: () => void;
-    name: string;
-    addedTracks?: string[];
+    localityDetails: LocalityDetails;
 }
 
-export const SearchTracksModal = ({ isVisible, onClose, name, addedTracks = [] }: SearchTracksModalProps) => {
+export const SearchTracksModal = ({ isVisible, onClose, localityDetails }: SearchTracksModalProps) => {
+    const { localityId, name } = localityDetails;
+    const existingTrackIds: string[] = []
+
     const [searchText, setSearchText] = useState("");
     const [tracks, setTracks] = useState<TrackType[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [nextOffset, setNextOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [loadingTrack, setLoadingTrack] = useState<string | null>(null);
-    const [addedTrackIds, setAddedTrackIds] = useState<string[]>(addedTracks);
 
     const cancelTokenSourceRef = useRef<CancelTokenSource | null>(null);
 
@@ -79,8 +85,8 @@ export const SearchTracksModal = ({ isVisible, onClose, name, addedTracks = [] }
     const handleAddTrack = (track: TrackType) => {
         setLoadingTrack(track.spotify_id);
         setTimeout(() => {
-            setAddedTrackIds((prev) => [...prev, track.spotify_id]);
             setLoadingTrack(null);
+            closeModal();
         }, 2000);
     };
 
@@ -139,7 +145,7 @@ export const SearchTracksModal = ({ isVisible, onClose, name, addedTracks = [] }
 
     return (
         <View style={styles.modalContainer}>
-            <TouchableWithoutFeedback onPress={closeModal}>
+            <TouchableWithoutFeedback onPress={closeModal} disabled={isLoading}>
                 <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
             </TouchableWithoutFeedback>
 
@@ -162,7 +168,7 @@ export const SearchTracksModal = ({ isVisible, onClose, name, addedTracks = [] }
                                 </TouchableOpacity>
                             )}
                         </View>
-                        <TouchableOpacity onPress={closeModal} style={styles.cancelButton}>
+                        <TouchableOpacity onPress={closeModal} style={styles.cancelButton} disabled={isLoading}>
                             <Text style={styles.cancelText}>Cancel</Text>
                         </TouchableOpacity>
                     </View>
@@ -202,7 +208,7 @@ export const SearchTracksModal = ({ isVisible, onClose, name, addedTracks = [] }
                                 <View style={styles.addTrackButtonWrapper}>
                                     {loadingTrack === item.spotify_id ? (
                                         <ActivityIndicator size="small" color="#fff" />
-                                    ) : addedTrackIds.includes(item.spotify_id) ? (
+                                    ) : existingTrackIds.includes(item.spotify_id) ? (
                                         <View style={styles.addedTrackButton}>
                                             <FontAwesome6 name="check" size={12} color="#fff" />
                                         </View>

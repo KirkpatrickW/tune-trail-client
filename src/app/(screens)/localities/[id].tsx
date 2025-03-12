@@ -1,6 +1,6 @@
 import { localitiesService } from '@/api/localitiesService';
-import { TrackType } from '@/api/types/searchTracksResponse';
 import { SearchTracksModal } from "@/components/tracks/SearchTracksModal";
+import { LocalityTrack } from '@/types/LocalityTrack';
 import { FontAwesome } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from "react";
@@ -9,16 +9,12 @@ import FastImage from 'react-native-fast-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const LocalityScreen = () => {
-	const { id, name, strHasTracks } = useLocalSearchParams();
-	const hasTracks = strHasTracks ? JSON.parse(strHasTracks as string) : false;
+	const { id, name } = useLocalSearchParams();
 	const insets = useSafeAreaInsets();
 	const router = useRouter();
 
-	const containerBackgroundColor = hasTracks ? "#6b2367" : "#171717";
-	const headerBackgroundColor = hasTracks ? "#7e2979" : "#242424";
-
 	const [isModalVisible, setIsModalVisible] = useState(false);
-	const [tracks, setTracks] = useState<TrackType[]>([]);
+	const [tracks, setTracks] = useState<LocalityTrack[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -45,11 +41,10 @@ const LocalityScreen = () => {
 
 	return (
 		<>
-			<View style={[styles.container, { backgroundColor: containerBackgroundColor }]}>
+			<View style={styles.container}>
 				<View style={[styles.header, {
 					paddingTop: insets.top,
-					height: 80 + insets.top,
-					backgroundColor: headerBackgroundColor
+					height: 80 + insets.top
 				}]}>
 					<TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
 						<FontAwesome name="chevron-left" size={20} color="white" />
@@ -69,7 +64,7 @@ const LocalityScreen = () => {
 								onRefresh={handleRefresh}
 								tintColor="#fff"
 								titleColor="#fff"
-								progressBackgroundColor={headerBackgroundColor}
+								progressBackgroundColor="#242424"
 							/>
 						}
 						ListEmptyComponent={
@@ -84,7 +79,7 @@ const LocalityScreen = () => {
 								)}
 							</View>
 						}
-						keyExtractor={(item) => item.spotify_id}
+						keyExtractor={(item) => item.track_id}
 						renderItem={({ item }) => (
 							<View style={styles.trackItem}>
 								<FastImage
@@ -109,16 +104,22 @@ const LocalityScreen = () => {
 			</View>
 			<SearchTracksModal
 				isVisible={isModalVisible}
-				onClose={() => setIsModalVisible(false)} name={name.toString()} />
+				onClose={() => setIsModalVisible(false)}
+				localityDetails={{
+					localityId: String(id),
+					name: String(name)
+				}} />
 		</>
 	);
 };
 
 const styles = StyleSheet.create({
 	container: {
-		flex: 1
+		flex: 1,
+		backgroundColor: "#171717"
 	},
 	header: {
+		backgroundColor: "#242424",
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',

@@ -1,46 +1,82 @@
+import { UserDetails } from '@/types/auth/user_details';
 import * as SecureStore from 'expo-secure-store';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 interface AuthContextType {
     accessToken: string | null;
+    userDetails: UserDetails | null;
+    isAdmin: boolean;
     isSessionUnavailable: boolean;
     isAuthLoaded: boolean;
     isAuthenticated: boolean;
-    setAccessToken: (token: string) => Promise<void>;
-    clearAccessToken: () => Promise<void>;
+    isCompleteSpotifyModalVisible: boolean;
+    setAuthData: (userDetails: Partial<UserDetails>, accessToken?: string) => Promise<void>;
+    clearAuthData: () => Promise<void>;
     showSessionUnavailableModal: () => void;
     hideSessionUnavailableModal: () => void;
+    showCompleteSpotifyModal: () => void;
+    hideCompleteSpotifyModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [accessToken, setAccessTokenState] = useState<string | null>(null);
+    const [userDetails, setUserDetailsState] = useState<UserDetails | null>(null);
     const [isSessionUnavailable, setIsSessionUnavailable] = useState(false);
     const [isAuthLoaded, setIsAuthLoaded] = useState(false);
+    const [isCompleteSpotifyModalVisible, setIsCompleteSpotifyModalVisible] = useState(false);
+
     const isAuthenticated = !!accessToken;
+    const isAdmin = useMemo(() => userDetails?.is_admin ?? false, [userDetails]);
 
     useEffect(() => {
         const loadAuthData = async () => {
-            const token = await SecureStore.getItemAsync('access_token');
-            const userData = await SecureStore.getItemAsync('user');
-            if (token && userData) {
-                setAccessTokenState(token);
+            const accessToken = await SecureStore.getItemAsync('access_token');
+            const storedUserDetails = await SecureStore.getItemAsync('user_details');
+            if (accessToken && storedUserDetails) {
+                setAccessTokenState(accessToken);
+                setUserDetailsState(JSON.parse(storedUserDetails));
             }
             setIsAuthLoaded(true);
         };
         loadAuthData();
     }, []);
 
-    const setAccessToken = async (token: string) => {
-        await SecureStore.setItemAsync('access_token', token);
-        setAccessTokenState(token);
+    useEffect(() => {
+        if (userDetails?.is_oauth_account === true && userDetails?.username === null) {
+            showCompleteSpotifyModal();
+        } else {
+            hideCompleteSpotifyModal();
+        }
+    }, [userDetails]);
+
+    const setAuthData = async (userDetails: Partial<UserDetails>, accessToken?: string) => {
+        if (accessToken) {
+            await SecureStore.setItemAsync('access_token', accessToken);
+            setAccessTokenState(accessToken);
+        }
+
+        setUserDetailsState((prevUserDetails) => {
+            const updatedUserDetails: UserDetails = {
+                user_id: userDetails.user_id !== undefined ? userDetails.user_id : prevUserDetails?.user_id ?? '',
+                username: userDetails.username !== undefined ? userDetails.username : prevUserDetails?.username ?? null,
+                is_admin: userDetails.is_admin !== undefined ? userDetails.is_admin : prevUserDetails?.is_admin ?? false,
+                is_oauth_account: userDetails.is_oauth_account !== undefined ? userDetails.is_oauth_account : prevUserDetails?.is_oauth_account ?? false,
+                spotify_subscription: userDetails.spotify_subscription !== undefined ? userDetails.spotify_subscription : prevUserDetails?.spotify_subscription ?? null,
+            };
+
+            SecureStore.setItemAsync('user_details', JSON.stringify(updatedUserDetails));
+
+            return updatedUserDetails;
+        });
     };
 
-    const clearAccessToken = async () => {
+    const clearAuthData = async () => {
         await SecureStore.deleteItemAsync('access_token');
-        await SecureStore.deleteItemAsync('user');
+        await SecureStore.deleteItemAsync('user_details');
         setAccessTokenState(null);
+        setUserDetailsState(null);
     };
 
     const showSessionUnavailableModal = () => {
@@ -51,17 +87,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsSessionUnavailable(false);
     };
 
+    const showCompleteSpotifyModal = () => {
+        setIsCompleteSpotifyModalVisible(true);
+    };
+
+    const hideCompleteSpotifyModal = () => {
+        setIsCompleteSpotifyModalVisible(false);
+    };
+
     return (
         <AuthContext.Provider
             value={{
                 accessToken,
+                userDetails,
+                isAdmin,
                 isSessionUnavailable,
                 isAuthLoaded,
                 isAuthenticated,
-                setAccessToken,
-                clearAccessToken,
+                isCompleteSpotifyModalVisible,
+                setAuthData,
+                clearAuthData,
                 showSessionUnavailableModal,
                 hideSessionUnavailableModal,
+                showCompleteSpotifyModal,
+                hideCompleteSpotifyModal,
             }}>
             {children}
         </AuthContext.Provider>

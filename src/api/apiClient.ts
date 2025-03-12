@@ -1,3 +1,4 @@
+import { UserDetails } from '@/types/auth/user_details';
 import { parseBackendError } from '@/utils/errorUtils';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
@@ -14,8 +15,8 @@ const BASE_URL = 'http://10.0.2.2:8000';
 // These variables will hold references to the methods from AuthContext.
 // We need to do this because apiClient.ts is not a React component or hook,
 // so it cannot directly use the useAuth() hook to access AuthContext methods.
-let setAuthContextAccessToken: (token: string) => Promise<void>;
-let clearAuthContextAccessToken: () => Promise<void>;
+let setAuthContextAuthData: (userDetails: Partial<UserDetails>, accessToken?: string) => Promise<void>;
+let clearAuthContextAuthData: () => Promise<void>;
 let showSessionUnavailableModal: () => void;
 
 // This function configures the apiClient with the necessary methods from AuthContext.
@@ -23,12 +24,12 @@ let showSessionUnavailableModal: () => void;
 // clearing the token, or showing the session unavailable modal) without directly
 // depending on React hooks or components.
 export const configureApiClient = (authMethods: {
-    setAccessToken: (token: string) => Promise<void>;
-    clearAccessToken: () => Promise<void>;
+    setAuthData: (userDetails: Partial<UserDetails>, accessToken?: string) => Promise<void>;
+    clearAuthData: () => Promise<void>;
     showSessionUnavailableModal: () => void;
 }) => {
-    setAuthContextAccessToken = authMethods.setAccessToken;
-    clearAuthContextAccessToken = authMethods.clearAccessToken;
+    setAuthContextAuthData = authMethods.setAuthData;
+    clearAuthContextAuthData = authMethods.clearAuthData;
     showSessionUnavailableModal = authMethods.showSessionUnavailableModal;
 };
 
@@ -42,12 +43,12 @@ const apiClient = axios.create({
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: any, accessToken: string | null = null) => {
     failedQueue.forEach(prom => {
         if (error) {
             prom.reject(error);
         } else {
-            prom.resolve(token);
+            prom.resolve(accessToken);
         }
     });
 
@@ -56,9 +57,9 @@ const processQueue = (error: any, token: string | null = null) => {
 
 apiClient.interceptors.request.use(
     async (config) => {
-        const token = await SecureStore.getItemAsync('access_token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        const accessToken = await SecureStore.getItemAsync('access_token');
+        if (accessToken) {
+            config.headers.Authorization = `Bearer ${accessToken}`;
         }
         if (config.showToast === undefined) {
             config.showToast = true;
@@ -94,8 +95,8 @@ apiClient.interceptors.response.use(
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
-                }).then((token) => {
-                    originalRequest.headers['Authorization'] = `Bearer ${token}`;
+                }).then((retryAccessToken) => {
+                    originalRequest.headers['Authorization'] = `Bearer ${retryAccessToken}`;
                     return apiClient(originalRequest);
                 }).catch((err) => {
                     return Promise.reject(err);
@@ -113,7 +114,8 @@ apiClient.interceptors.response.use(
                 });
 
                 const newAccessToken = response.data.access_token;
-                await setAuthContextAccessToken(newAccessToken);
+                const newUserDetails = response.data.user_details;
+                await setAuthContextAuthData(newUserDetails, newAccessToken);
 
                 apiClient.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
                 originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
@@ -122,7 +124,7 @@ apiClient.interceptors.response.use(
                 return apiClient(originalRequest);
             } catch (err) {
                 processQueue(err, null);
-                await clearAuthContextAccessToken();
+                await clearAuthContextAuthData();
 
                 showSessionUnavailableModal();
                 return Promise.reject(err);

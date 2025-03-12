@@ -1,37 +1,50 @@
-import { CompleteSpotifyModal } from '@/components/auth/CompleteSpotifyModal';
 import { Maps } from '@/components/maps/Maps';
 import { useUserSidebar } from '@/context/UserSidebarContext';
 import { FontAwesome6 } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const IndexScreen = () => {
 	const { toggleUserSidebar } = useUserSidebar();
-	const [showModal, setShowModal] = useState(false);
+	const insets = useSafeAreaInsets();
 
 	return (
 		<View style={styles.indexContainer}>
 			<Maps />
-			{/* Existing user button */}
-			<TouchableOpacity
-				onPress={toggleUserSidebar}
-				style={styles.userButton}
-			>
-				<FontAwesome6 name="user" size={20} color="white" />
-			</TouchableOpacity>
+			<View style={[styles.toolbar, { top: insets.top }]}>
+				{/* Left Group: User Button and Search Button */}
+				<View style={styles.leftGroup}>
+					<TouchableOpacity
+						onPress={toggleUserSidebar}
+						style={styles.toolbarButton}
+						activeOpacity={0.9}>
+						<FontAwesome6 name="user" size={20} color="white" />
+					</TouchableOpacity>
+					<TouchableOpacity
+						onPress={() => console.log('Search button pressed')}
+						style={styles.toolbarButton}
+						activeOpacity={0.9}>
+						<FontAwesome6 name="magnifying-glass" size={20} color="white" />
+					</TouchableOpacity>
+				</View>
 
-			{/* New temporary modal trigger button */}
-			<TouchableOpacity
-				onPress={() => setShowModal(true)}
-				style={styles.modalTriggerButton}
-			>
-				<FontAwesome6 name="plus" size={20} color="white" />
-			</TouchableOpacity>
+				{/* Location Container - Centered */}
+				<View style={styles.locationContainer}>
+					<Text style={styles.locationText}>BALLYCLARE</Text>
+				</View>
 
-			<CompleteSpotifyModal
-				isVisible={showModal}
-				onClose={() => setShowModal(false)}
-			/>
+				{/* Right Group: Spacer and Settings Button */}
+				<View style={styles.rightGroup}>
+					<View style={styles.rightSpacer} />
+					<TouchableOpacity
+						onPress={() => console.log('Settings button pressed')}
+						style={styles.toolbarButton}
+						activeOpacity={0.9}>
+						<FontAwesome6 name="gear" size={20} color="white" />
+					</TouchableOpacity>
+				</View>
+			</View>
 		</View>
 	);
 };
@@ -39,31 +52,49 @@ const IndexScreen = () => {
 const styles = StyleSheet.create({
 	indexContainer: {
 		flex: 1,
-		backgroundColor: "black"
+		backgroundColor: 'black',
 	},
-	userButton: {
+	toolbar: {
 		position: 'absolute',
-		top: 40,
 		left: 20,
-		width: 40,
-		height: 40,
-		borderRadius: 20,
-		backgroundColor: 'rgba(255, 255, 255, 0.2)',
-		justifyContent: 'center',
-		alignItems: 'center',
-		zIndex: 1001,
-	},
-	modalTriggerButton: {
-		position: 'absolute',
-		top: 40,
 		right: 20,
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+	},
+	leftGroup: {
+		flexDirection: 'row',
+		gap: 10,
+	},
+	toolbarButton: {
 		width: 40,
 		height: 40,
 		borderRadius: 20,
-		backgroundColor: '#6b2367',
+		backgroundColor: '#171717',
 		justifyContent: 'center',
 		alignItems: 'center',
-		zIndex: 1001,
+	},
+	locationContainer: {
+		flex: 1, // Takes up remaining space
+		height: 40,
+		backgroundColor: '#171717',
+		borderRadius: 20,
+		justifyContent: 'center',
+		alignItems: 'center',
+		marginHorizontal: 10, // Adds spacing between left group and right group
+	},
+	locationText: {
+		color: 'white',
+		fontSize: 16,
+		fontWeight: 'bold',
+	},
+	rightGroup: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 10, // Adds spacing between spacer and gear button
+	},
+	rightSpacer: {
+		width: 40, // Matches the width of the gear button
 	},
 });
 

@@ -28,7 +28,7 @@ const validatePassword = (password: string) => {
 };
 
 export default function AuthScreen() {
-    const { setAccessToken, isAuthenticated } = useAuth();
+    const { setAuthData, isAuthenticated } = useAuth();
     const router = useRouter();
 
     const [username, setUsername] = useState('');
@@ -50,10 +50,6 @@ export default function AuthScreen() {
         return error ? <Text style={styles.errorText}>{`• ${error}`}</Text> : null;
     };
 
-    const handleSpotify = () => {
-        setSpotifyModalVisible(true);
-    };
-
     const handleBackendError = (error: unknown) => {
         if (error instanceof AxiosError) {
             const errorDetails = error.response?.data?.detail;
@@ -69,7 +65,7 @@ export default function AuthScreen() {
 
         try {
             const response = await authService.login(username, password);
-            await setAccessToken(response.data.access_token);
+            await setAuthData(response.data.user_details, response.data.access_token);
             router.replace('/(screens)');
         } catch (error) {
             handleBackendError(error);
@@ -83,7 +79,7 @@ export default function AuthScreen() {
 
         try {
             const response = await authService.register(username, password);
-            await setAccessToken(response.data.access_token);
+            await setAuthData(response.data.user_details, response.data.access_token);
             router.replace('/(screens)');
         } catch (error) {
             handleBackendError(error);
@@ -99,18 +95,13 @@ export default function AuthScreen() {
         setIsPasswordVisible((prevState) => !prevState);
     };
 
-    const handleSpotifyAuthCode = async (code: string) => {
+    const handleSpotifyAuthCode = async (authCode: string) => {
         setIsLoading(true);
         try {
-            // Assumes you have a corresponding endpoint in authService for Spotify auth
-            // const response = await authService.spotifyAuth(code);
-            // await setAccessToken(response.data.access_token);
-            // router.replace('/(screens)');
-
-            console.log(code)
-        } catch (error) {
-            handleBackendError(error);
-        }
+            const response = await authService.connectSpotify(authCode)
+            await setAuthData(response.data.user_details, response.data.access_token);
+            router.replace('/(screens)');
+        } catch (error) { }
         setIsLoading(false);
     };
 
@@ -130,7 +121,7 @@ export default function AuthScreen() {
                 <ActivityIndicator size="large" color="white" />
             ) : (
                 <>
-                    <TouchableOpacity style={styles.spotifyButton} onPress={handleSpotify} activeOpacity={0.9}>
+                    <TouchableOpacity style={styles.spotifyButton} onPress={() => setSpotifyModalVisible(true)} activeOpacity={0.9}>
                         <FontAwesome name="spotify" size={25} color="#fff" style={styles.buttonIcon} />
                         <Text style={styles.buttonText}>CONTINUE WITH SPOTIFY</Text>
                     </TouchableOpacity>

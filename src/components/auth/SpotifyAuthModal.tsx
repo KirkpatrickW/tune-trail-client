@@ -13,7 +13,7 @@ const SPOTIFY_AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${SPO
 interface SpotifyAuthModalProps {
     isVisible: boolean;
     onClose: () => void;
-    onAuthCodeReceived: (code: string) => void;
+    onAuthCodeReceived: (authCode: string) => void;
 }
 
 export const SpotifyAuthModal: React.FC<SpotifyAuthModalProps> = ({ isVisible, onClose, onAuthCodeReceived }) => {
@@ -54,7 +54,7 @@ export const SpotifyAuthModal: React.FC<SpotifyAuthModalProps> = ({ isVisible, o
         if (normalized.startsWith(SPOTIFY_REDIRECT_URI)) {
             try {
                 const authUrl = new URL(normalized);
-                const code = authUrl.searchParams.get('code');
+                const authCode = authUrl.searchParams.get('code');
                 const error = authUrl.searchParams.get('error');
 
                 if (error) {
@@ -62,8 +62,8 @@ export const SpotifyAuthModal: React.FC<SpotifyAuthModalProps> = ({ isVisible, o
                     return;
                 }
 
-                if (code) {
-                    handleAuthSuccess(code);
+                if (authCode) {
+                    handleAuthSuccess(authCode);
                 } else {
                     handleAuthFailure();
                 }
@@ -74,9 +74,9 @@ export const SpotifyAuthModal: React.FC<SpotifyAuthModalProps> = ({ isVisible, o
         }
     };
 
-    const handleAuthSuccess = (code: string) => {
+    const handleAuthSuccess = (authCode: string) => {
         closeModal();
-        onAuthCodeReceived(code);
+        onAuthCodeReceived(authCode);
     };
 
     const handleAuthError = (error: string) => {

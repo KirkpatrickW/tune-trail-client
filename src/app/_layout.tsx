@@ -1,4 +1,5 @@
 import { configureApiClient } from '@/api/apiClient';
+import { CompleteSpotifyModal } from '@/components/auth/CompleteSpotifyModal';
 import SessionUnavailableModal from '@/components/auth/SessionUnavailableModal';
 import toastConfig from '@/config/toastConfig';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -21,6 +22,7 @@ const App = () => {
 					<AppInitialiser />
 					<RootNavigation />
 					<SessionUnavailableModalWrapper />
+					<CompleteSpotifyModal />
 					<StatusBar style="light" />
 					<Toast config={toastConfig} topOffset={insets.top + 20} />
 				</GestureHandlerRootView>
@@ -31,8 +33,8 @@ const App = () => {
 
 const AppInitialiser = () => {
 	const {
-		setAccessToken,
-		clearAccessToken,
+		setAuthData,
+		clearAuthData,
 		showSessionUnavailableModal,
 		isAuthLoaded,
 		isAuthenticated
@@ -41,8 +43,8 @@ const AppInitialiser = () => {
 
 	// apiClient Setup
 	useEffect(() => {
-		configureApiClient({ setAccessToken, clearAccessToken, showSessionUnavailableModal });
-	}, [setAccessToken, clearAccessToken, showSessionUnavailableModal]);
+		configureApiClient({ setAuthData, clearAuthData, showSessionUnavailableModal });
+	}, [setAuthData, clearAuthData, showSessionUnavailableModal]);
 
 	// Redirect to AuthScreen onload if the user is not authenticated.
 	useEffect(() => {

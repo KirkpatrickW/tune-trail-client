@@ -1,5 +1,6 @@
+import { authService } from '@/api/authService';
+import { useAuth } from '@/context/AuthContext';
 import { parseBackendError } from '@/utils/errorUtils';
-import { FontAwesome6 } from '@expo/vector-icons';
 import { AxiosError } from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -13,11 +14,6 @@ import {
     View,
 } from 'react-native';
 
-interface CompleteSpotifyModalProps {
-    isVisible: boolean;
-    onClose: () => void;
-}
-
 const validateUsername = (username: string) => {
     if (!username) return 'Username is required.';
     if (username.length < 3) return 'Username must be at least 3 characters long.';
@@ -26,9 +22,10 @@ const validateUsername = (username: string) => {
     return '';
 };
 
-export const CompleteSpotifyModal = ({ isVisible, onClose }: CompleteSpotifyModalProps) => {
+export const CompleteSpotifyModal = () => {
+    const { isCompleteSpotifyModalVisible, hideCompleteSpotifyModal, setAuthData } = useAuth();
     const [username, setUsername] = useState('');
-    const [error, setError] = useState('');
+    const [requestErrors, setRequestErrors] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [usernameTouched, setUsernameTouched] = useState(false);
 
@@ -37,10 +34,10 @@ export const CompleteSpotifyModal = ({ isVisible, onClose }: CompleteSpotifyModa
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        if (isVisible) {
+        if (isCompleteSpotifyModalVisible) {
             openModal();
         }
-    }, [isVisible]);
+    }, [isCompleteSpotifyModalVisible]);
 
     const openModal = () => {
         Animated.parallel([
@@ -70,31 +67,41 @@ export const CompleteSpotifyModal = ({ isVisible, onClose }: CompleteSpotifyModa
                 useNativeDriver: true,
             }),
         ]).start(() => {
-            onClose();
+            setUsername('');
+            setRequestErrors([]);
+            setIsLoading(false);
+            setUsernameTouched(false);
+
+            hideCompleteSpotifyModal();
         });
     };
 
     const usernameError = usernameTouched ? validateUsername(username) : '';
     const isFormValid = usernameError === '' && username;
 
+    const renderError = (error: string) => {
+        return error ? <Text style={styles.errorText}>{`• ${error}`}</Text> : null;
+    };
+
     const handleBackendError = (error: unknown) => {
         if (error instanceof AxiosError) {
             const errorDetails = error.response?.data?.detail;
-            setError(parseBackendError(errorDetails).join('\n'));
+            setRequestErrors(parseBackendError(errorDetails));
             return;
         }
-        setError('An unexpected error occurred. Please try again.');
+        setRequestErrors(['An unexpected error occurred. Please try again.']);
     };
 
-    const handleSave = async () => {
+    const handleSaveUsername = async () => {
         setUsernameTouched(true);
         if (!isFormValid) return;
 
         setIsLoading(true);
-        setError('');
+        setRequestErrors([]);
 
         try {
-            // await authService.updateUsername(username);
+            const response = await authService.completeSpotify(username);
+            await setAuthData(response.data.user_details);
             closeModal();
         } catch (error) {
             handleBackendError(error);
@@ -102,20 +109,13 @@ export const CompleteSpotifyModal = ({ isVisible, onClose }: CompleteSpotifyModa
         setIsLoading(false);
     };
 
-    if (!isVisible) return null;
+    if (!isCompleteSpotifyModalVisible) return null;
 
     return (
         <View style={styles.modalContainer}>
             <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
 
             <Animated.View style={[styles.modalContent, { transform: [{ translateY: slideAnim }] }]}>
-                <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={closeModal}
-                >
-                    <FontAwesome6 name="xmark" size={16} color="#a1a1a1" />
-                </TouchableOpacity>
-
                 <View style={styles.header}>
                     <Text style={styles.title}>Choose Your Username</Text>
                     <Text style={styles.subtitle}>This will be your unique profile identifier</Text>
@@ -135,22 +135,22 @@ export const CompleteSpotifyModal = ({ isVisible, onClose }: CompleteSpotifyModa
                         selectionColor="#6b2367"
                         autoCapitalize="none"
                         autoCorrect={false}
-                    />
+                        editable={!isLoading} />
                 </View>
 
-                {(usernameError || error) && (
+                {((usernameTouched || requestErrors.length > 0) && (usernameError || requestErrors.length > 0)) ? (
                     <View style={styles.errorBox}>
-                        <Text style={styles.errorText}>{usernameError || error}</Text>
+                        {renderError(usernameError)}
+                        {requestErrors.map((err, index) => renderError(err))}
                     </View>
-                )}
+                ) : null}
 
                 <TouchableOpacity
-                    style={[styles.saveButton, { opacity: isFormValid ? 1 : 0.6 }]}
-                    onPress={handleSave}
-                    disabled={!isFormValid || isLoading}
-                >
+                    style={[styles.saveUsernameButton, { opacity: isFormValid ? 1 : 0.6 }]}
+                    onPress={handleSaveUsername}
+                    disabled={!isFormValid || isLoading}>
                     {isLoading ? (
-                        <ActivityIndicator size="small" color="#fff" />
+                        <ActivityIndicator size="small" color="white" />
                     ) : (
                         <Text style={styles.buttonText}>SAVE USERNAME</Text>
                     )}
@@ -193,52 +193,52 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     inputContainer: {
-        marginVertical: 15,
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        marginBottom: 10,
     },
     input: {
-        paddingVertical: 12,
+        flex: 1,
+        paddingVertical: 10,
         paddingHorizontal: 15,
         backgroundColor: "#313131",
-        borderRadius: 8,
+        borderRadius: 5,
         color: '#fff',
-        fontSize: 16,
     },
     inputValid: {
         borderColor: '#6b2367',
-        borderWidth: 1,
+        borderWidth: 2,
     },
     inputError: {
         borderColor: '#ff4444',
-        borderWidth: 1,
+        borderWidth: 2,
     },
-    saveButton: {
-        backgroundColor: '#6b2367',
-        borderRadius: 8,
+    saveUsernameButton: {
+        width: '100%',
         padding: 15,
+        backgroundColor: '#6b2367',
+        borderRadius: 30,
+        marginTop: 10,
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 10,
+        flexDirection: 'row',
     },
     buttonText: {
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
+        letterSpacing: 1.5,
     },
     errorBox: {
-        backgroundColor: '#ff444433',
+        width: '100%',
+        backgroundColor: '#ff4444',
         padding: 10,
-        borderRadius: 8,
-        marginVertical: 10,
+        borderRadius: 5,
     },
     errorText: {
-        color: '#ff4444',
+        color: '#fff',
+        fontWeight: 'bold',
         fontSize: 14,
-    },
-    closeButton: {
-        position: 'absolute',
-        top: 16,
-        right: 16,
-        padding: 8,
-        zIndex: 1,
     },
 });

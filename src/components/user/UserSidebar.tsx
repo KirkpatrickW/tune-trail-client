@@ -1,10 +1,11 @@
 import { authService } from '@/api/authService';
 import { useAuth } from '@/context/AuthContext';
-import { FontAwesome } from '@expo/vector-icons'; // Import FontAwesome for the icon
+import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SpotifyAuthModal } from '../auth/SpotifyAuthModal';
 
 interface UserSidebarProps {
     isVisible: boolean;
@@ -13,8 +14,10 @@ interface UserSidebarProps {
 
 export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
     const router = useRouter();
-
-    const { isAuthenticated, clearAccessToken } = useAuth();
+    const { userDetails, isAuthenticated, setAuthData, clearAuthData } = useAuth();
+    const [isLoading, setIsLoading] = useState(false);
+    const [activeButton, setActiveButton] = useState<string | null>(null);
+    const [spotifyModalVisible, setSpotifyModalVisible] = useState(false);
 
     const slideAnim = useRef(new Animated.Value(-300)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -42,6 +45,8 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
     };
 
     const closeModal = () => {
+        if (isLoading) return;
+
         Animated.parallel([
             Animated.timing(slideAnim, {
                 toValue: -300,
@@ -63,45 +68,66 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
     };
 
     const handleLogOut = async () => {
+        setIsLoading(true);
+        setActiveButton('logout');
+
         try {
-            await authService.logout()
+            await authService.logout();
         } catch (error) { }
 
-        await clearAccessToken();
+        await clearAuthData();
+        setIsLoading(false);
+        setActiveButton(null);
         router.replace("/auth");
     };
 
-    const handleLinkSpotify = () => {
-        console.log("Link Spotify!")
+    const handleSpotifyAuthCode = async (authCode: string) => {
+        setIsLoading(true);
+        setActiveButton('linkSpotify');
+        try {
+            const response = await authService.linkSpotify(authCode);
+            await setAuthData(response.data.user_details, response.data.access_token);
+        } catch (error) { }
+        setIsLoading(false);
+        setActiveButton(null);
     };
 
-    const handleUnlinkSpotify = () => {
+    const handleUnlinkSpotify = async () => {
+        setIsLoading(true);
+        setActiveButton('unlinkSpotify');
 
+        try {
+            const response = await authService.unlinkSpotify()
+            await setAuthData(response.data.user_details, response.data.access_token);
+        } catch (error) { }
+        setIsLoading(false);
+        setActiveButton(null);
     };
-
 
     if (!isVisible) return null;
 
     return (
         <View style={styles.modalContainer}>
-            <TouchableWithoutFeedback onPress={closeModal}>
+            <TouchableWithoutFeedback onPress={closeModal} disabled={isLoading}>
                 <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
             </TouchableWithoutFeedback>
 
             <Animated.View style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}>
                 <View style={[styles.titleContainer, { paddingTop: insets.top }]}>
                     <Text style={styles.welcomeText}>Welcome,</Text>
-                    <Text style={styles.usernameText}>Guest</Text>
+                    <Text style={styles.usernameText}>
+                        {isAuthenticated ? "@" + userDetails?.username : "Guest"}
+                    </Text>
                 </View>
 
                 <View style={styles.navigationContainer}>
-                    <TouchableOpacity style={styles.navButton}>
+                    <TouchableOpacity style={styles.navButton} disabled={isLoading}>
                         <Text style={styles.navButtonText}>Profile</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.navButton}>
+                    <TouchableOpacity style={styles.navButton} disabled={isLoading}>
                         <Text style={styles.navButtonText}>Settings</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.navButton}>
+                    <TouchableOpacity style={styles.navButton} disabled={isLoading}>
                         <Text style={styles.navButtonText}>Help</Text>
                     </TouchableOpacity>
                 </View>
@@ -109,29 +135,68 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
                 <View style={[styles.bottomContainer, { marginBottom: insets.bottom }]}>
                     {isAuthenticated ? (
                         <>
-                            <TouchableOpacity style={styles.unlinkSpotifyButton} onPress={handleUnlinkSpotify} activeOpacity={0.9}>
-                                <FontAwesome name="spotify" size={20} color="#1DB954" style={styles.icon} />
-                                <Text style={[styles.buttonText, { color: '#1DB954' }]}>UNLINK SPOTIFY</Text>
-                            </TouchableOpacity>
+                            {userDetails?.is_oauth_account === false &&
+                                <>
+                                    {userDetails?.spotify_subscription !== null ? (
+                                        <TouchableOpacity
+                                            style={styles.unlinkSpotifyButton}
+                                            onPress={handleUnlinkSpotify}
+                                            disabled={isLoading}
+                                            activeOpacity={0.9}>
+                                            <FontAwesome name="spotify" size={20} color="#1DB954" style={styles.icon} />
+                                            {activeButton === 'unlinkSpotify' && isLoading ? (
+                                                <ActivityIndicator color="#1DB954" />
+                                            ) : (
+                                                <Text style={[styles.buttonText, { color: '#1DB954' }]}>UNLINK SPOTIFY</Text>
+                                            )}
+                                        </TouchableOpacity>
+                                    ) : (
+                                        <TouchableOpacity
+                                            style={styles.linkSpotifyButton}
+                                            onPress={() => setSpotifyModalVisible(true)}
+                                            disabled={isLoading}
+                                            activeOpacity={0.9}>
+                                            <FontAwesome name="spotify" size={20} color="#fff" style={styles.icon} />
+                                            {activeButton === 'linkSpotify' && isLoading ? (
+                                                <ActivityIndicator color="#fff" />
+                                            ) : (
+                                                <Text style={styles.buttonText}>LINK SPOTIFY</Text>
+                                            )}
+                                        </TouchableOpacity>
+                                    )}
+                                </>
+                            }
 
-                            <TouchableOpacity style={styles.linkSpotifyButton} onPress={handleLinkSpotify} activeOpacity={0.9}>
-                                <FontAwesome name="spotify" size={20} color="#fff" style={styles.icon} />
-                                <Text style={styles.buttonText}>LINK SPOTIFY</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity style={styles.logoutButton} onPress={handleLogOut} activeOpacity={0.9}>
+                            <TouchableOpacity
+                                style={styles.logoutButton}
+                                onPress={handleLogOut}
+                                disabled={isLoading}
+                                activeOpacity={0.9}>
                                 <FontAwesome name="sign-out" size={20} color="#000" style={styles.icon} />
-                                <Text style={[styles.buttonText, { color: '#000' }]}>LOG OUT</Text>
+                                {activeButton === 'logout' && isLoading ? (
+                                    <ActivityIndicator color="#000" />
+                                ) : (
+                                    <Text style={[styles.buttonText, { color: '#000' }]}>LOG OUT</Text>
+                                )}
                             </TouchableOpacity>
                         </>
                     ) : (
-                        <TouchableOpacity style={styles.signinButton} onPress={handleSignIn} activeOpacity={0.9}>
+                        <TouchableOpacity
+                            style={styles.signinButton}
+                            onPress={handleSignIn}
+                            disabled={isLoading}
+                            activeOpacity={0.9}>
                             <FontAwesome name="sign-in" size={20} color="#fff" style={styles.icon} />
                             <Text style={styles.buttonText}>SIGN IN</Text>
                         </TouchableOpacity>
                     )}
                 </View>
             </Animated.View>
+
+            <SpotifyAuthModal
+                isVisible={spotifyModalVisible}
+                onClose={() => setSpotifyModalVisible(false)}
+                onAuthCodeReceived={handleSpotifyAuthCode} />
         </View>
     );
 };
