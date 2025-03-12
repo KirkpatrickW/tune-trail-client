@@ -176,7 +176,6 @@ const styles = StyleSheet.create({
     },
     locationContainer: {
         backgroundColor: "#171717",
-        elevation: 10,
         height: DEFAULT_WIDTH,
         justifyContent: "center",
         alignItems: "center",

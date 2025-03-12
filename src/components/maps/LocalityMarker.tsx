@@ -30,8 +30,7 @@ export const LocalityMarker = ({ pointFeature, index }: LocalityMarkerProps) => 
                         id: pointFeature.properties.id,
                         name: pointFeature.properties.name,
                         longitude: pointFeature.geometry.coordinates[0],
-                        latitude: pointFeature.geometry.coordinates[1],
-                        strHasTracks: JSON.stringify(hasTracks)
+                        latitude: pointFeature.geometry.coordinates[1]
                     }
                 });
             }}

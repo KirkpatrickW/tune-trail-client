@@ -13,9 +13,6 @@
       "resizeMode": "contain",
       "backgroundColor": "#000"
     },
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
       "permissions": [
         "ACCESS_COARSE_LOCATION",
@@ -33,13 +30,34 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#000"
       },
-      "package": "com.kirkpatrickw.tunetrail"
+      "package": "com.kirkpatrickw.tunetrail",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "tune-trail",
+              "host": "*",
+              "pathPrefix": "/spotify-auth-callback"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

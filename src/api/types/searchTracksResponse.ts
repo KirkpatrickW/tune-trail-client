@@ -15,5 +15,4 @@ export interface TrackType {
         medium: string | null;
         large: string;
     };
-    preview_url?: string;
 }

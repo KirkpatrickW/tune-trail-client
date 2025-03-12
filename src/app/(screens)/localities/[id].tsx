@@ -1,42 +1,40 @@
 import { localitiesService } from '@/api/localitiesService';
-import { TrackType } from '@/api/types/searchTracksResponse';
+import { MovingText } from '@/components/MovingText';
 import { SearchTracksModal } from "@/components/tracks/SearchTracksModal";
+import { useAuth } from '@/context/AuthContext';
+import { LocalityTrack } from '@/types/LocalityTrack';
 import { FontAwesome } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const LocalityScreen = () => {
-	const { id, name, strHasTracks } = useLocalSearchParams();
-	const hasTracks = strHasTracks ? JSON.parse(strHasTracks as string) : false;
+	const { id, name } = useLocalSearchParams();
 	const insets = useSafeAreaInsets();
 	const router = useRouter();
 
-	const containerBackgroundColor = hasTracks ? "#6b2367" : "#171717";
-	const headerBackgroundColor = hasTracks ? "#7e2979" : "#242424";
+	const [isSearchTracksModalVisible, setIsSearchTracksModalVisible] = useState(false);
+	const [tracks, setTracks] = useState<LocalityTrack[]>([]);
+	const [isLoading, setIsLoading] = useState(false);
 
-	const [isModalVisible, setIsModalVisible] = useState(false);
-	const [tracks, setTracks] = useState<TrackType[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
-	const [isRefreshing, setIsRefreshing] = useState(false);
+	const { isAuthenticated } = useAuth()
+
+	const existingSpotifyTrackIds = useMemo(() => {
+		return tracks.map((track) => track.spotify_id);
+	}, [tracks]);
 
 	const fetchTracks = async () => {
+		setIsLoading(true);
+		setTracks([]);
+
 		try {
 			const response = await localitiesService.getTracksInLocality(id as string);
 			setTracks(response.data);
-		} catch (error) {
-			console.error('Error fetching tracks:', error);
-		} finally {
-			setIsLoading(false);
-			setIsRefreshing(false);
-		}
-	};
+		} catch (error) { }
 
-	const handleRefresh = () => {
-		setIsRefreshing(true);
-		fetchTracks();
+		setIsLoading(false);
 	};
 
 	useEffect(() => {
@@ -45,33 +43,40 @@ const LocalityScreen = () => {
 
 	return (
 		<>
-			<View style={[styles.container, { backgroundColor: containerBackgroundColor }]}>
+			<View style={styles.container}>
 				<View style={[styles.header, {
 					paddingTop: insets.top,
-					height: 80 + insets.top,
-					backgroundColor: headerBackgroundColor
+					height: 80 + insets.top
 				}]}>
-					<TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-						<FontAwesome name="chevron-left" size={20} color="white" />
-					</TouchableOpacity>
-					<Text style={styles.headerTitle}>{name}</Text>
-					<TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.backButton}>
-						<FontAwesome name="plus" size={20} color="white" />
-					</TouchableOpacity>
+					<View style={styles.leftHeader}>
+						<TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
+							<FontAwesome name="chevron-left" size={20} color="white" />
+						</TouchableOpacity>
+						<TouchableOpacity onPress={fetchTracks} style={styles.headerButton} disabled={isLoading}>
+							<FontAwesome name="refresh" size={20} color="white" />
+						</TouchableOpacity>
+					</View>
+
+					<View style={styles.centerHeader}>
+						<MovingText
+							text={String(name)}
+							animationThreshold={10}
+							style={styles.headerTitle}
+						/>
+					</View>
+
+					<View style={styles.rightHeader}>
+						{isAuthenticated &&
+							<TouchableOpacity onPress={() => setIsSearchTracksModalVisible(true)} style={styles.headerButton} disabled={isLoading}>
+								<FontAwesome name="plus" size={20} color="white" />
+							</TouchableOpacity>
+						}
+					</View>
 				</View>
 
 				<View style={styles.flatListContentContainer}>
 					<FlatList
 						data={tracks}
-						refreshControl={
-							<RefreshControl
-								refreshing={isRefreshing}
-								onRefresh={handleRefresh}
-								tintColor="#fff"
-								titleColor="#fff"
-								progressBackgroundColor={headerBackgroundColor}
-							/>
-						}
 						ListEmptyComponent={
 							<View style={styles.flatListEmptyContainer}>
 								{isLoading ? (
@@ -84,7 +89,7 @@ const LocalityScreen = () => {
 								)}
 							</View>
 						}
-						keyExtractor={(item) => item.spotify_id}
+						keyExtractor={(item) => item.track_id}
 						renderItem={({ item }) => (
 							<View style={styles.trackItem}>
 								<FastImage
@@ -98,6 +103,9 @@ const LocalityScreen = () => {
 									<Text style={styles.trackArtist} numberOfLines={1}>
 										{item.artists.join(", ")}
 									</Text>
+									<Text style={styles.trackContributor} numberOfLines={1}>
+										Contribution by <Text style={styles.trackContributorUsername}>@{item.username}</Text>
+									</Text>
 								</View>
 							</View>
 						)}
@@ -108,27 +116,50 @@ const LocalityScreen = () => {
 				</View>
 			</View>
 			<SearchTracksModal
-				isVisible={isModalVisible}
-				onClose={() => setIsModalVisible(false)} name={name.toString()} />
+				isVisible={isSearchTracksModalVisible}
+				onClose={() => setIsSearchTracksModalVisible(false)}
+				onTrackAdded={fetchTracks}
+				localityDetails={{
+					localityId: String(id),
+					name: String(name),
+					existingSpotifyTrackIds
+				}} />
 		</>
 	);
 };
 
 const styles = StyleSheet.create({
 	container: {
-		flex: 1
+		flex: 1,
+		backgroundColor: "#171717"
 	},
 	header: {
+		backgroundColor: "#242424",
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'space-between',
 		paddingHorizontal: 20,
 		elevation: 10,
 		position: 'relative',
 		zIndex: 10,
 	},
-	backButton: {
-		padding: 10,
+	leftHeader: {
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'flex-start',
+		alignItems: 'center',
+	},
+	centerHeader: {
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center',
+		maxWidth: '100%', // Ensure the container width is constrained
+		overflow: 'hidden', // Prevent the text from overflowing outside
+	},
+	rightHeader: {
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'flex-end',
+		alignItems: 'center',
 	},
 	headerTitle: {
 		fontSize: 22,
@@ -136,15 +167,9 @@ const styles = StyleSheet.create({
 		color: 'white',
 		textTransform: 'uppercase',
 		textAlign: 'center',
-		flex: 1,
 	},
-	addButton: {
-		width: 32,
-		height: 32,
-		borderRadius: 16,
-		backgroundColor: 'white',
-		justifyContent: 'center',
-		alignItems: 'center',
+	headerButton: {
+		padding: 10,
 	},
 	flatListContentContainer: {
 		flex: 1,
@@ -176,7 +201,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		padding: 10,
 		borderBottomWidth: 1,
-		borderBottomColor: "#7e2979",
+		borderBottomColor: "#333",
 		justifyContent: "space-between",
 	},
 	trackImage: {
@@ -194,9 +219,17 @@ const styles = StyleSheet.create({
 		fontWeight: "bold",
 	},
 	trackArtist: {
-		color: "#fff",
-		opacity: 0.6,
 		fontSize: 14,
+		color: "rgba(255,255,255,0.6)",
+	},
+	trackContributor: {
+		fontSize: 12,
+		marginTop: 2,
+		color: "rgba(255,255,255,0.6)",
+	},
+	trackContributorUsername: {
+		fontWeight: "bold",
+		color: "#fff",
 	},
 });
 

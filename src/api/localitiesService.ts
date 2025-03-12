@@ -1,9 +1,7 @@
-import { Locality } from '@/types/locality';
-import { Track } from '@/types/track';
+import { LocalityTrack } from '@/types/LocalityTrack';
 import type { AxiosResponse } from 'axios';
 import { supercluster } from 'react-native-clusterer';
 import apiClient from './apiClient';
-import { AddTrackToLocalityResponse } from './types/addTrackToLocalityResponse';
 
 const BASE_URL = "/localities";
 
@@ -18,13 +16,13 @@ export const localitiesService = {
             },
         });
     },
-    getTracksInLocality: async (localityId: string): Promise<AxiosResponse<Track[]>> => {
-        return await apiClient.get<Track[]>(`${BASE_URL}/${localityId}/tracks`);
+    getTracksInLocality: async (localityId: string): Promise<AxiosResponse<LocalityTrack[]>> => {
+        return await apiClient.get<LocalityTrack[]>(`${BASE_URL}/${localityId}/tracks`);
     },
-    addTrackToLocality: async (locality: Locality, track: Track): Promise<AxiosResponse<AddTrackToLocalityResponse>> => {
-        return await apiClient.put<AddTrackToLocalityResponse>(`${BASE_URL}`, {
-            locality,
-            track
+    addTrackToLocality: async (localityId: string, spotifyTrackId: string): Promise<AxiosResponse<{ message: string }>> => {
+        return await apiClient.put<{ message: string }>(`${BASE_URL}/tracks`, {
+            locality_id: localityId,
+            spotify_track_id: spotifyTrackId
         });
     },
 };
