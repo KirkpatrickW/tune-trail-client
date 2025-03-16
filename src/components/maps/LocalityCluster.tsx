@@ -15,6 +15,7 @@ export const LocalityCluster = ({ clusterFeature, index }: LocalityClusterProps)
                 latitude: clusterFeature.geometry.coordinates[1],
                 longitude: clusterFeature.geometry.coordinates[0],
             }}
+            anchor={{ x: 0.5, y: 0.5 }}
             onPress={() => { alert(`Cluster with ${clusterFeature.properties.point_count} points`) }}
         >
             <View style={styles.clusterContainer}>

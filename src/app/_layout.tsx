@@ -3,6 +3,7 @@ import { CompleteSpotifyModal } from '@/components/auth/CompleteSpotifyModal';
 import SessionUnavailableModal from '@/components/auth/SessionUnavailableModal';
 import toastConfig from '@/config/toastConfig';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { LocationProvider } from '@/context/LocationContext';
 import { useLogTrackPlayerState } from '@/hooks/player/useLogTrackPlayerState';
 import { useSetupTrackPlayer } from '@/hooks/player/useSetupTrackPlayer';
 import { Stack, useRouter } from 'expo-router';
@@ -17,16 +18,18 @@ const App = () => {
 
 	return (
 		<SafeAreaProvider>
-			<AuthProvider>
-				<GestureHandlerRootView style={{ flex: 1 }}>
-					<AppInitialiser />
-					<RootNavigation />
-					<SessionUnavailableModalWrapper />
-					<CompleteSpotifyModal />
-					<StatusBar style="light" />
-					<Toast config={toastConfig} topOffset={insets.top + 20} />
-				</GestureHandlerRootView>
-			</AuthProvider>
+			<LocationProvider>
+				<AuthProvider>
+					<GestureHandlerRootView style={{ flex: 1 }}>
+						<AppInitialiser />
+						<RootNavigation />
+						<SessionUnavailableModalWrapper />
+						<CompleteSpotifyModal />
+						<StatusBar style="light" />
+						<Toast config={toastConfig} topOffset={insets.top + 20} />
+					</GestureHandlerRootView>
+				</AuthProvider>
+			</LocationProvider>
 		</SafeAreaProvider>
 	);
 };
