@@ -1,5 +1,5 @@
 import { authService } from '@/api/authService';
-import { useAuth } from '@/context/AuthContext';
+import { UserDetails } from '@/types/auth/user_details';
 import { parseBackendError } from '@/utils/errorUtils';
 import { AxiosError } from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
@@ -22,8 +22,13 @@ const validateUsername = (username: string) => {
     return '';
 };
 
-export const CompleteSpotifyModal = () => {
-    const { isCompleteSpotifyModalVisible, hideCompleteSpotifyModal, setAuthData } = useAuth();
+interface CompleteSpotifyModalProps {
+    isVisible: boolean;
+    onClose: () => void;
+    setAuthData: (userDetails: Partial<UserDetails>, accessToken?: string) => Promise<void>;
+}
+
+export const CompleteSpotifyModal: React.FC<CompleteSpotifyModalProps> = ({ isVisible, onClose, setAuthData }) => {
     const [username, setUsername] = useState('');
     const [requestErrors, setRequestErrors] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -34,10 +39,10 @@ export const CompleteSpotifyModal = () => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        if (isCompleteSpotifyModalVisible) {
+        if (isVisible) {
             openModal();
         }
-    }, [isCompleteSpotifyModalVisible]);
+    }, [isVisible]);
 
     const openModal = () => {
         Animated.parallel([
@@ -72,7 +77,7 @@ export const CompleteSpotifyModal = () => {
             setIsLoading(false);
             setUsernameTouched(false);
 
-            hideCompleteSpotifyModal();
+            onClose();
         });
     };
 
@@ -109,7 +114,7 @@ export const CompleteSpotifyModal = () => {
         setIsLoading(false);
     };
 
-    if (!isCompleteSpotifyModalVisible) return null;
+    if (!isVisible) return null;
 
     return (
         <View style={styles.modalContainer}>

@@ -1,10 +1,9 @@
+import { UserSidebar } from '@/components/user/UserSidebar';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { createContext, useCallback, useContext, useState } from 'react';
 
 type UserSidebarContextType = {
     toggleUserSidebar: () => void;
-    isUserSidebarVisible: boolean;
-    setIsUserSidebarVisible: (value: boolean) => void;
 };
 
 const UserSidebarContext = createContext<UserSidebarContextType>({} as UserSidebarContextType);
@@ -24,11 +23,10 @@ export const UserSidebarProvider = ({ children }: { children: React.ReactNode })
 
     return (
         <UserSidebarContext.Provider value={{
-            toggleUserSidebar,
-            isUserSidebarVisible,
-            setIsUserSidebarVisible
+            toggleUserSidebar
         }}>
             {children}
+            <UserSidebar isVisible={isUserSidebarVisible} onClose={() => setIsUserSidebarVisible(false)} />
         </UserSidebarContext.Provider>
     );
 };

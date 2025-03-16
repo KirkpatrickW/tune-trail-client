@@ -1,6 +1,5 @@
 import { FloatingPlayer } from "@/components/player/FloatingPlayer";
-import { UserSidebar } from "@/components/user/UserSidebar";
-import { UserSidebarProvider, useUserSidebar } from "@/context/UserSidebarContext";
+import { UserSidebarProvider } from "@/context/UserSidebarContext";
 import { Stack } from "expo-router";
 import React from "react";
 
@@ -13,8 +12,6 @@ const ScreensNavigation = () => {
 };
 
 const ScreenContent = () => {
-    const { isUserSidebarVisible, setIsUserSidebarVisible } = useUserSidebar();
-
     return (
         <>
             <Stack>
@@ -30,10 +27,6 @@ const ScreenContent = () => {
             </Stack>
 
             <FloatingPlayer />
-            <UserSidebar
-                isVisible={isUserSidebarVisible}
-                onClose={() => setIsUserSidebarVisible(false)}
-            />
         </>
     );
 };

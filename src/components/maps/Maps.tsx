@@ -1,21 +1,26 @@
 import { localitiesService } from "@/api/localitiesService";
 import { mapStyle } from "@/constants/mapStyle";
-import { useState } from "react";
+import { useLocation } from "@/context/LocationContext";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from "react-native";
 import { Clusterer, supercluster } from "react-native-clusterer";
-import MapView, { PROVIDER_GOOGLE, Region } from "react-native-maps";
+import MapView, { Circle, Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import { LocalityCluster } from "./LocalityCluster";
 import { LocalityMarker } from "./LocalityMarker";
 
 export const Maps = () => {
+    const { userLocation } = useLocation();
     const [pointFeatures, setPointFeatures] = useState<supercluster.PointFeature<any>[]>([]);
     const [loading, setLoading] = useState(false);
     const [region, setRegion] = useState<Region>({
-        latitude: 54.747892040571315,
-        latitudeDelta: 0.11736790078042958,
-        longitude: -6.019373741000891,
-        longitudeDelta: 0.09301867336034775
+        latitude: 0,
+        longitude: 0,
+        latitudeDelta: 180,
+        longitudeDelta: 180,
     });
+    const [hasAnimatedToUserLocation, setHasAnimatedToUserLocation] = useState(false);
+
+    const mapRef = useRef<MapView>(null);
 
     const { width, height } = Dimensions.get('window');
 
@@ -32,7 +37,7 @@ export const Maps = () => {
             longitudeDelta,
         });
 
-        const zoomLevel = getZoomLevel(latitudeDelta);
+        const zoomLevel = getZoomLevel(longitudeDelta);
         console.log("Zoom level:", zoomLevel);
         if (zoomLevel >= 8) {
             const bounds = {
@@ -57,6 +62,19 @@ export const Maps = () => {
         }
     };
 
+    useEffect(() => {
+        if (userLocation && mapRef.current && !hasAnimatedToUserLocation) {
+            const newRegion: Region = {
+                latitude: userLocation.coords.latitude,
+                longitude: userLocation.coords.longitude,
+                latitudeDelta: 0.0022,
+                longitudeDelta: 0.005,
+            };
+            mapRef.current.animateToRegion(newRegion, 1000);
+            setHasAnimatedToUserLocation(true);
+        }
+    }, [userLocation, hasAnimatedToUserLocation]);
+
     return (
         <View style={{ flex: 1 }}>
             {loading && (
@@ -65,13 +83,12 @@ export const Maps = () => {
                 </View>
             )}
             <MapView
+                ref={mapRef}
                 style={{ width: '100%', height: '100%' }}
                 provider={PROVIDER_GOOGLE}
                 customMapStyle={mapStyle}
                 toolbarEnabled={false}
                 moveOnMarkerPress={false}
-                showsUserLocation
-                showsMyLocationButton={false}
                 showsCompass={false}
                 onRegionChangeComplete={(region) => {
                     setRegion(region);
@@ -81,6 +98,30 @@ export const Maps = () => {
                 scrollEnabled={!loading}
                 zoomEnabled={!loading}
                 initialRegion={region}>
+                {userLocation && (
+                    <>
+                        <Marker
+                            coordinate={{
+                                latitude: userLocation.coords.latitude,
+                                longitude: userLocation.coords.longitude,
+                            }}
+                            anchor={{ x: 0.5, y: 0.5 }}>
+                            <View style={styles.userLocationContainer}>
+                                <View style={styles.userLocationDot} />
+                            </View>
+                        </Marker>
+                        <Circle
+                            center={{
+                                latitude: userLocation.coords.latitude,
+                                longitude: userLocation.coords.longitude,
+                            }}
+                            radius={5000}
+                            strokeWidth={2}
+                            strokeColor="#6b2367"
+                            fillColor="rgba(107, 35, 103, 0.2)"
+                        />
+                    </>
+                )}
                 <Clusterer
                     data={pointFeatures}
                     mapDimensions={{ width, height }}
@@ -95,7 +136,7 @@ export const Maps = () => {
             </MapView>
         </View>
     );
-}
+};
 
 const styles = StyleSheet.create({
     loadingContainer: {
@@ -113,5 +154,17 @@ const styles = StyleSheet.create({
         padding: 5,
         paddingHorizontal: 10,
         borderRadius: 20,
+    },
+    userLocationContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    userLocationDot: {
+        width: 15,
+        height: 15,
+        borderRadius: 7.5,
+        backgroundColor: '#6b2367',
+        borderWidth: 2,
+        borderColor: 'white',
     },
 });

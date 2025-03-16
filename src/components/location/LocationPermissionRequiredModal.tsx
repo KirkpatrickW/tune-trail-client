@@ -1,35 +1,34 @@
 import { FontAwesome } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
     Dimensions,
     StyleSheet,
     Text,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
     View
 } from 'react-native';
 
-interface LogoutModalProps {
-    isVisible: boolean;
-    onClose: () => void;
+interface LocationPermissionRequiredModalProps {
+    permissionGranted: boolean | null;
 }
 
-const SessionUnavailableModal: React.FC<LogoutModalProps> = ({ isVisible, onClose }) => {
-    const router = useRouter();
-
+export const LocationPermissionRequiredModal: React.FC<LocationPermissionRequiredModalProps> = ({ permissionGranted }) => {
     const screenHeight = Dimensions.get('window').height;
     const slideAnim = useRef(new Animated.Value(screenHeight)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
     useEffect(() => {
-        if (isVisible) {
+        if (!permissionGranted) {
             openModal();
+        } else if (permissionGranted && isModalVisible) {
+            closeModal();
         }
-    }, [isVisible]);
+    }, [permissionGranted])
 
     const openModal = () => {
+        setIsModalVisible(true)
+
         Animated.parallel([
             Animated.timing(slideAnim, {
                 toValue: 0,
@@ -56,38 +55,19 @@ const SessionUnavailableModal: React.FC<LogoutModalProps> = ({ isVisible, onClos
                 duration: 300,
                 useNativeDriver: true,
             }),
-        ]).start(() => onClose());
+        ]).start(() => setIsModalVisible(false));
     };
 
-    const handleSignIn = () => {
-        closeModal();
-        router.replace("/auth");
-    };
-
-    if (!isVisible) return null;
+    if (!isModalVisible) return null;
 
     return (
         <View style={styles.modalContainer}>
-            <TouchableWithoutFeedback onPress={closeModal}>
-                <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
-            </TouchableWithoutFeedback>
+            <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
 
             <Animated.View style={[styles.modalContent, { transform: [{ translateY: slideAnim }] }]}>
-                <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-                    <FontAwesome name="times" size={24} color="#a1a1a1" />
-                </TouchableOpacity>
-
                 <FontAwesome name="exclamation-circle" size={40} style={styles.modalIcon} />
-                <Text style={styles.title}>Session Unavailable!</Text>
-                <Text style={styles.subtitle}>Your session has expired or was cancelled. Please log in again.</Text>
-
-                <TouchableOpacity
-                    style={styles.signinButton}
-                    onPress={handleSignIn}
-                    activeOpacity={0.9}>
-                    <FontAwesome name="sign-in" size={20} color="#fff" style={styles.icon} />
-                    <Text style={styles.buttonText}>SIGN IN</Text>
-                </TouchableOpacity>
+                <Text style={styles.title}>Location Access Required</Text>
+                <Text style={styles.subtitle}>This app requires location access to function properly, please allow location access. You can enable it in your device settings.</Text>
             </Animated.View>
         </View>
     );
@@ -126,32 +106,4 @@ const styles = StyleSheet.create({
         color: 'white',
         marginBottom: 10,
     },
-    closeButton: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        padding: 5,
-    },
-    signinButton: {
-        width: '100%',
-        padding: 15,
-        backgroundColor: '#6b2367',
-        borderRadius: 30,
-        marginTop: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-        letterSpacing: 1.5,
-    },
-    icon: {
-        position: 'absolute',
-        left: 15,
-    },
 });
-
-export default SessionUnavailableModal;

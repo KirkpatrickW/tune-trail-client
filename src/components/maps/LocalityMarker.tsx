@@ -39,6 +39,7 @@ export const LocalityMarker = ({ pointFeature, index }: LocalityMarkerProps) => 
                 longitude: pointFeature.geometry.coordinates[0],
                 latitude: pointFeature.geometry.coordinates[1],
             }}
+            anchor={{ x: 0.5, y: 0.5 }}
         >
             <View style={styles.markerContainer}>
                 <View style={containerStyle}>
