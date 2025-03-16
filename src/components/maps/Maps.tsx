@@ -18,7 +18,7 @@ export const Maps = () => {
         latitudeDelta: 180,
         longitudeDelta: 180,
     });
-    const [hasAnimatedToUserLocation, setHasAnimatedToUserLocation] = useState(false); // Track if animation has occurred
+    const [hasAnimatedToUserLocation, setHasAnimatedToUserLocation] = useState(false);
 
     const mapRef = useRef<MapView>(null);
 

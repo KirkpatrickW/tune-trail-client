@@ -1,6 +1,4 @@
 import { configureApiClient } from '@/api/apiClient';
-import { CompleteSpotifyModal } from '@/components/auth/CompleteSpotifyModal';
-import SessionUnavailableModal from '@/components/auth/SessionUnavailableModal';
 import toastConfig from '@/config/toastConfig';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { LocationProvider } from '@/context/LocationContext';
@@ -23,8 +21,6 @@ const App = () => {
 					<GestureHandlerRootView style={{ flex: 1 }}>
 						<AppInitialiser />
 						<RootNavigation />
-						<SessionUnavailableModalWrapper />
-						<CompleteSpotifyModal />
 						<StatusBar style="light" />
 						<Toast config={toastConfig} topOffset={insets.top + 20} />
 					</GestureHandlerRootView>
@@ -96,11 +92,6 @@ const RootNavigation = () => {
 				}} />
 		</Stack>
 	);
-};
-
-const SessionUnavailableModalWrapper = () => {
-	const { isSessionUnavailable, hideSessionUnavailableModal } = useAuth();
-	return <SessionUnavailableModal visible={isSessionUnavailable} onClose={hideSessionUnavailableModal} />;
 };
 
 export default App;

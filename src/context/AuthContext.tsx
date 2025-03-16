@@ -1,3 +1,5 @@
+import { CompleteSpotifyModal } from '@/components/auth/CompleteSpotifyModal';
+import SessionUnavailableModal from '@/components/auth/SessionUnavailableModal';
 import { UserDetails } from '@/types/auth/user_details';
 import * as SecureStore from 'expo-secure-store';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
@@ -13,9 +15,6 @@ interface AuthContextType {
     setAuthData: (userDetails: Partial<UserDetails>, accessToken?: string) => Promise<void>;
     clearAuthData: () => Promise<void>;
     showSessionUnavailableModal: () => void;
-    hideSessionUnavailableModal: () => void;
-    showCompleteSpotifyModal: () => void;
-    hideCompleteSpotifyModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,8 +22,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [accessToken, setAccessTokenState] = useState<string | null>(null);
     const [userDetails, setUserDetailsState] = useState<UserDetails | null>(null);
-    const [isSessionUnavailable, setIsSessionUnavailable] = useState(false);
     const [isAuthLoaded, setIsAuthLoaded] = useState(false);
+    const [isSessionUnavailable, setIsSessionUnavailable] = useState(false);
     const [isCompleteSpotifyModalVisible, setIsCompleteSpotifyModalVisible] = useState(false);
 
     const isAuthenticated = !!accessToken;
@@ -45,9 +44,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     useEffect(() => {
         if (userDetails?.is_oauth_account === true && userDetails?.username === null) {
-            showCompleteSpotifyModal();
+            setIsCompleteSpotifyModalVisible(true);
         } else {
-            hideCompleteSpotifyModal();
+            setIsCompleteSpotifyModalVisible(false);
         }
     }, [userDetails]);
 
@@ -83,18 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsSessionUnavailable(true);
     };
 
-    const hideSessionUnavailableModal = () => {
-        setIsSessionUnavailable(false);
-    };
-
-    const showCompleteSpotifyModal = () => {
-        setIsCompleteSpotifyModalVisible(true);
-    };
-
-    const hideCompleteSpotifyModal = () => {
-        setIsCompleteSpotifyModalVisible(false);
-    };
-
     return (
         <AuthContext.Provider
             value={{
@@ -107,12 +94,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isCompleteSpotifyModalVisible,
                 setAuthData,
                 clearAuthData,
-                showSessionUnavailableModal,
-                hideSessionUnavailableModal,
-                showCompleteSpotifyModal,
-                hideCompleteSpotifyModal,
+                showSessionUnavailableModal
             }}>
             {children}
+            <SessionUnavailableModal isVisible={isSessionUnavailable} onClose={() => setIsSessionUnavailable(false)} />
+            <CompleteSpotifyModal isVisible={isCompleteSpotifyModalVisible} onClose={() => setIsCompleteSpotifyModalVisible(false)} setAuthData={setAuthData} />
         </AuthContext.Provider>
     );
 };
