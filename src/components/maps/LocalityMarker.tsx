@@ -1,14 +1,14 @@
 import { router } from "expo-router";
+import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { supercluster } from "react-native-clusterer";
 import { Marker } from "react-native-maps";
 
 type LocalityMarkerProps = {
     pointFeature: supercluster.PointFeature<any>;
-    index: number;
 };
 
-export const LocalityMarker = ({ pointFeature, index }: LocalityMarkerProps) => {
+export const LocalityMarker = React.memo(({ pointFeature }: LocalityMarkerProps) => {
     const hasTracks = pointFeature.properties.track_count > 0;
     const trackCount = pointFeature.properties.track_count;
     const trackCountDisplay = trackCount > 99 ? "99+" : trackCount.toString();
@@ -28,13 +28,10 @@ export const LocalityMarker = ({ pointFeature, index }: LocalityMarkerProps) => 
                     pathname: "/localities/[id]",
                     params: {
                         id: pointFeature.properties.id,
-                        name: pointFeature.properties.name,
-                        longitude: pointFeature.geometry.coordinates[0],
-                        latitude: pointFeature.geometry.coordinates[1]
+                        name: pointFeature.properties.name
                     }
                 });
             }}
-            key={index}
             coordinate={{
                 longitude: pointFeature.geometry.coordinates[0],
                 latitude: pointFeature.geometry.coordinates[1],
@@ -53,7 +50,9 @@ export const LocalityMarker = ({ pointFeature, index }: LocalityMarkerProps) => 
             </View>
         </Marker>
     );
-};
+}, (prevProps, nextProps) =>
+    prevProps.pointFeature === nextProps.pointFeature
+);
 
 const styles = StyleSheet.create({
     markerContainer: {

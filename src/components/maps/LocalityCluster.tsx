@@ -1,23 +1,30 @@
+import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { supercluster } from "react-native-clusterer";
-import { Marker } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 
 type LocalityClusterProps = {
     clusterFeature: supercluster.ClusterFeature<any>;
-    index: number;
+    mapRef: React.RefObject<MapView>;
 };
 
-export const LocalityCluster = ({ clusterFeature, index }: LocalityClusterProps) => {
+export const LocalityCluster = React.memo(({ clusterFeature, mapRef }: LocalityClusterProps) => {
+    const handleClusterPress = () => {
+        const expansionRegion = clusterFeature.properties.getExpansionRegion();
+
+        if (mapRef.current) {
+            mapRef.current.animateToRegion(expansionRegion, 1000);
+        }
+    };
+
     return (
         <Marker
-            key={index}
             coordinate={{
                 latitude: clusterFeature.geometry.coordinates[1],
                 longitude: clusterFeature.geometry.coordinates[0],
             }}
             anchor={{ x: 0.5, y: 0.5 }}
-            onPress={() => { alert(`Cluster with ${clusterFeature.properties.point_count} points`) }}
-        >
+            onPress={handleClusterPress}>
             <View style={styles.clusterContainer}>
                 <Text style={styles.clusterText}>
                     {clusterFeature.properties.point_count}
@@ -25,11 +32,13 @@ export const LocalityCluster = ({ clusterFeature, index }: LocalityClusterProps)
             </View>
         </Marker>
     );
-};
+}, (prevProps, nextProps) =>
+    prevProps.clusterFeature === nextProps.clusterFeature
+);
 
 const styles = StyleSheet.create({
     clusterContainer: {
-        backgroundColor: "#6b2367",
+        backgroundColor: "#421d40",
         padding: 5,
         borderRadius: 50,
         alignItems: "center",
