@@ -23,8 +23,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setPermissionGranted(isGranted);
 
         if (isGranted) {
-            const loc = await Location.getCurrentPositionAsync({});
-            setUserLocation(loc);
+            setUserLocation(await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }));
 
             Location.watchPositionAsync(
                 { accuracy: Location.Accuracy.High, timeInterval: 5000, distanceInterval: 10 },

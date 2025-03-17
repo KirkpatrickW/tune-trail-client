@@ -43,7 +43,6 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
     const [loadingTrack, setLoadingTrack] = useState<string | null>(null);
 
     const { isAuthenticated } = useAuth();
-
     const cancelTokenSourceRef = useRef<CancelTokenSource | null>(null);
 
     const fetchTracks = async () => {
@@ -64,14 +63,13 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
             setHasMore(next_offset < total_matching_results);
             setNextOffset(next_offset);
         } catch (error) {
-            // Do nothing, cancelation of request raises an error which is expected.
             return;
         }
         setIsLoading(false);
     };
 
     const handleAddTrack = async (track: TrackType) => {
-        const track_spotify_id = track.spotify_id
+        const track_spotify_id = track.spotify_id;
 
         setLoadingTrack(track_spotify_id);
 
@@ -99,6 +97,10 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
     const handleSearchChange = (input: string) => {
         resetSearchState();
         setSearchText(input);
+
+        if (input.length === 0) {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -134,7 +136,7 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
                 useNativeDriver: true,
             }),
         ]).start();
-    }
+    };
 
     const closeModal = () => {
         Animated.parallel([
@@ -153,7 +155,7 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
             clearSearch();
             onClose();
         });
-    }
+    };
 
     if (!isVisible) return null;
 
