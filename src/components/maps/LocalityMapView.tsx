@@ -192,7 +192,7 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
 
             try {
                 visibleGrids.forEach((grid) => {
-                    const gridKey = getGridKey(grid.north, grid.west);
+                    const gridKey = getGridKey(grid.south, grid.west);
                     const cachedData = getCachedGrid(gridKey);
 
                     if (cachedData) {

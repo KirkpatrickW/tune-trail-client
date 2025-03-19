@@ -157,7 +157,7 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
         });
     };
 
-    if (!isVisible) return null;
+    if (!isVisible || !isAuthenticated) return null;
 
     return (
         <View style={styles.modalContainer}>
