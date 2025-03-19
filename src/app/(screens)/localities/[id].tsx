@@ -1,4 +1,5 @@
 import { localitiesService } from '@/api/localitiesService';
+import { localityTracksService } from '@/api/localityTracksService';
 import { MovingText } from '@/components/MovingText';
 import { SearchTracksModal } from "@/components/tracks/SearchTracksModal";
 import { useAuth } from '@/context/AuthContext';
@@ -14,16 +15,19 @@ const LocalityScreen = () => {
 	const { id, name } = useLocalSearchParams();
 	const insets = useSafeAreaInsets();
 	const router = useRouter();
+	const { isAuthenticated } = useAuth();
 
 	const [isSearchTracksModalVisible, setIsSearchTracksModalVisible] = useState(false);
 	const [tracks, setTracks] = useState<LocalityTrack[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [votingState, setVotingState] = useState<{ localityTrackId: number | null; voteType: 1 | -1 | null }>({
+		localityTrackId: null,
+		voteType: null,
+	});
 
-	const { isAuthenticated } = useAuth()
+	const existingSpotifyTrackIds = useMemo(() => tracks.map((track) => track.spotify_id), [tracks]);
 
-	const existingSpotifyTrackIds = useMemo(() => {
-		return tracks.map((track) => track.spotify_id);
-	}, [tracks]);
+	useEffect(() => { fetchTracks(); }, [id]);
 
 	const fetchTracks = async () => {
 		setIsLoading(true);
@@ -37,9 +41,41 @@ const LocalityScreen = () => {
 		setIsLoading(false);
 	};
 
-	useEffect(() => {
-		fetchTracks();
-	}, [id]);
+	const handleVote = async (localityTrackId: number, buttonVote: 1 | -1) => {
+		const track = tracks.find((t) => t.locality_track_id === localityTrackId);
+		if (!track) return;
+
+		setVotingState({ localityTrackId, voteType: buttonVote });
+
+		const existingUserVote = track.user_vote;
+		const userVote = existingUserVote === buttonVote ? 0 : buttonVote;
+
+		try {
+			await localityTracksService.voteOnLocalityTrack(localityTrackId, userVote);
+
+			const voteChange = userVote - existingUserVote;
+
+			const updatedTrack = {
+				...track,
+				total_votes: track.total_votes + voteChange,
+				user_vote: userVote,
+			};
+
+			setTracks((prevTracks) =>
+				prevTracks
+					.map((t) =>
+						t.locality_track_id === localityTrackId ? updatedTrack : t
+					)
+					.sort((a, b) => b.total_votes - a.total_votes)
+			);
+		} catch (error) { }
+
+		setVotingState({ localityTrackId: null, voteType: null });
+	};
+
+	const formatVoteCount = (totalVotes: number) => {
+		return totalVotes > 999 ? "999+" : totalVotes.toString();
+	};
 
 	return (
 		<>
@@ -90,22 +126,56 @@ const LocalityScreen = () => {
 							</View>
 						}
 						keyExtractor={(item) => item.track_id}
-						renderItem={({ item }) => (
+						renderItem={({ item, index }) => (
 							<View style={styles.trackItem}>
-								<FastImage
-									source={{ uri: item.cover.small || item.cover.medium || item.cover.large }}
-									style={styles.trackImage}
-								/>
-								<View style={styles.trackInfo}>
-									<Text style={styles.trackTitle} numberOfLines={1}>
-										{item.name}
-									</Text>
-									<Text style={styles.trackArtist} numberOfLines={1}>
-										{item.artists.join(", ")}
-									</Text>
-									<Text style={styles.trackContributor} numberOfLines={1}>
-										Contribution by <Text style={styles.trackContributorUsername}>@{item.username}</Text>
-									</Text>
+								<Text style={styles.trackIndex}>{index + 1}</Text>
+								<View style={styles.trackContent}>
+									<FastImage
+										source={{ uri: item.cover.small || item.cover.medium || item.cover.large }}
+										style={styles.trackImage}
+									/>
+									<View style={styles.trackInfo}>
+										<Text style={styles.trackTitle} numberOfLines={1}>
+											{item.name}
+										</Text>
+										<Text style={styles.trackArtist} numberOfLines={1}>
+											{item.artists.join(", ")}
+										</Text>
+										<Text style={styles.trackContributor} numberOfLines={1}>
+											Contribution by <Text style={styles.trackContributorUsername}>@{item.username}</Text>
+										</Text>
+									</View>
+								</View>
+								<View style={styles.votingContainer}>
+									{isAuthenticated && (
+										<>
+											{votingState.localityTrackId === item.locality_track_id && votingState.voteType === 1 ? (
+												<ActivityIndicator size="small" color="white" />
+											) : (
+												<TouchableOpacity
+													onPress={() => handleVote(item.locality_track_id, 1)}
+													disabled={votingState.localityTrackId !== null}
+												>
+													<FontAwesome name="arrow-up" size={20} color={item.user_vote === 1 ? "#6b2367" : "white"} />
+												</TouchableOpacity>
+											)}
+										</>
+									)}
+									<Text style={styles.voteCount}>{formatVoteCount(item.total_votes)}</Text>
+									{isAuthenticated && (
+										<>
+											{votingState.localityTrackId === item.locality_track_id && votingState.voteType === -1 ? (
+												<ActivityIndicator size="small" color="white" />
+											) : (
+												<TouchableOpacity
+													onPress={() => handleVote(item.locality_track_id, -1)}
+													disabled={votingState.localityTrackId !== null}
+												>
+													<FontAwesome name="arrow-down" size={20} color={item.user_vote === -1 ? "#6b2367" : "white"} />
+												</TouchableOpacity>
+											)}
+										</>
+									)}
 								</View>
 							</View>
 						)}
@@ -152,8 +222,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		alignItems: 'center',
 		justifyContent: 'center',
-		maxWidth: '100%', // Ensure the container width is constrained
-		overflow: 'hidden', // Prevent the text from overflowing outside
+		maxWidth: '100%',
+		overflow: 'hidden',
 	},
 	rightHeader: {
 		flex: 1,
@@ -202,7 +272,17 @@ const styles = StyleSheet.create({
 		padding: 10,
 		borderBottomWidth: 1,
 		borderBottomColor: "#333",
-		justifyContent: "space-between",
+	},
+	trackIndex: {
+		color: '#fff',
+		fontSize: 16,
+		width: 30,
+		marginRight: 10,
+	},
+	trackContent: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		flex: 1,
 	},
 	trackImage: {
 		width: 50,
@@ -230,6 +310,19 @@ const styles = StyleSheet.create({
 	trackContributorUsername: {
 		fontWeight: "bold",
 		color: "#fff",
+	},
+	votingContainer: {
+		flexDirection: 'column',
+		alignItems: 'center',
+		marginLeft: 10,
+		paddingHorizontal: 12,
+		width: 60,
+	},
+	voteCount: {
+		color: '#fff',
+		marginVertical: 4,
+		fontSize: 16,
+		textAlign: 'center',
 	},
 });
 

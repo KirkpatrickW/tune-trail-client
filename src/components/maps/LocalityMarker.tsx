@@ -9,8 +9,8 @@ type LocalityMarkerProps = {
 };
 
 export const LocalityMarker = React.memo(({ pointFeature }: LocalityMarkerProps) => {
-    const hasTracks = pointFeature.properties.track_count > 0;
-    const trackCount = pointFeature.properties.track_count;
+    const hasTracks = pointFeature.properties.total_tracks > 0;
+    const trackCount = pointFeature.properties.total_tracks;
     const trackCountDisplay = trackCount > 99 ? "99+" : trackCount.toString();
 
     const containerStyle = hasTracks
