@@ -15,6 +15,7 @@ import React, {
 import TrackPlayer, {
     AppKilledPlaybackBehavior,
     Event,
+    RepeatMode,
     Track,
     useIsPlaying,
     useProgress,
@@ -58,7 +59,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const [isSessionActive, setIsSessionActive] = useState<boolean>(false);
     const [volume, setVolumeState] = useState<number>(1.0);
     const [radius, setRadius] = useState<number>(5000);
-    const [pendingRefresh, setPendingRefresh] = useState<null | (() => void)>(null);
 
     const lastLocationRef = useRef<LocationObject | null>(null);
     const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -219,6 +219,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 const newQueue = createQueue(newLocalities);
                 await TrackPlayer.reset();
                 await TrackPlayer.add(newQueue);
+                await TrackPlayer.setRepeatMode(RepeatMode.Queue);
                 await TrackPlayer.setVolume(volume);
                 await TrackPlayer.play();
 
@@ -282,7 +283,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setLocalities([]);
         setCurrentLocalityIndex(0);
         setCurrentTrackIndex(0);
-        setPendingRefresh(null);
     }, []);
 
     const pause = () => {
@@ -407,17 +407,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             console.error('[Player] Failed to seek:', err);
         }
     };
-
-    // TODO: This is bad
-    useTrackPlayerEvents([Event.PlaybackQueueEnded], () => {
-        if (pendingRefresh) {
-            console.log('[Player] Playback finished — running pending refresh');
-            pendingRefresh();
-            setPendingRefresh(null);
-        } else {
-            skipToNextTrack();
-        }
-    });
 
     useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], async (event) => {
         if (!isSessionActive || !event.track) return;
