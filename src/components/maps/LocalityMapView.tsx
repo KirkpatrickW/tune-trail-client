@@ -131,6 +131,7 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                 if (mapRef.current) {
                     mapRef.current.animateToRegion(newRegion, 1000);
                     setRegion(newRegion);
+                    debouncedFetchLocalities(newRegion);
                     clearInterval(interval);
                 }
             }, 100);
