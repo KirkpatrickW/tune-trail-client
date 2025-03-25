@@ -57,7 +57,7 @@ const distanceMoved = (loc1: LocationObject, loc2: LocationObject) => {
 const createQueue = (localities: PlayerLocality[]): Track[] =>
     localities.flatMap((locality) =>
         locality.tracks.map((track): Track => ({
-            id: track.track_id,
+            id: `${locality.locality_id}:${track.track_id}`,
             url: track.preview_url,
             name: track.name,
             artist: track.artists.join(", "),
@@ -149,7 +149,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 };
 
                 const queue = await TrackPlayer.getQueue();
-                const currentIndex = queue.findIndex(track => track.id === currentTrack.track_id);
+
+                const compositeId = `${currentLocality?.locality_id}:${currentTrack.track_id}`;
+                const currentIndex = queue.findIndex(track => track.id === compositeId);
 
                 if (currentIndex === -1) {
                     console.warn("[Player] Current track not found in queue — skipping ghost logic");
@@ -179,13 +181,15 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
                 const newQueue = createQueue(newLocalities);
                 const currentFlatIndex = calculateTrackFlatIndex(newLocIndex, newTrackIndex, newLocalities);
-                const currentId = currentTrack.track_id;
 
                 const before = newQueue.slice(0, currentFlatIndex);
                 const after = newQueue.slice(currentFlatIndex + 1);
 
                 const queue = await TrackPlayer.getQueue();
-                const index = queue.findIndex(q => q.id === currentId);
+
+                const compositeId = `${currentLocality?.locality_id}:${currentTrack.track_id}`;
+                const index = queue.findIndex(q => q.id === compositeId);
+
                 if (index !== -1) {
                     for (let i = index - 1; i >= 0; i--) {
                         await TrackPlayer.remove(i);
@@ -218,7 +222,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 };
 
                 const queue = await TrackPlayer.getQueue();
-                const index = queue.findIndex(q => q.id === currentTrack.track_id);
+
+                const compositeId = `${currentLocality?.locality_id}:${currentTrack.track_id}`;
+                const index = queue.findIndex(q => q.id === compositeId);
 
                 for (let i = queue.length - 1; i >= 0; i--) {
                     if (i !== index) {
@@ -458,27 +464,35 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], async (event) => {
         if (!isSessionActive || !event.track) return;
 
-        const trackId = event.track.id;
-        if (!trackId) return;
+        const compositeId = event.track.id;
+        if (!compositeId) return;
+
+        const [rawLocalityId, rawTrackId] = compositeId.split(":");
+        const localityId = Number(rawLocalityId);
+        const trackId = Number(rawTrackId);
 
         setLocalities((prevLocalities) => {
-            const ghostPresent = typeof prevLocalities[0]?.locality_id === 'string' && prevLocalities[0].locality_id.startsWith("ghost-");
+            const ghostPresent =
+                typeof prevLocalities[0]?.locality_id === "string" &&
+                prevLocalities[0].locality_id.startsWith("ghost-");
+
             let updatedLocalities = prevLocalities;
 
             if (ghostPresent) {
-                TrackPlayer.remove(0).catch((err) => {
-                    console.warn("[Player] Failed to remove ghost track from queue:", err);
-                });
-
+                TrackPlayer.remove(0)
                 updatedLocalities = prevLocalities.slice(1);
             }
 
             for (let locIndex = 0; locIndex < updatedLocalities.length; locIndex++) {
-                const trackIndex = updatedLocalities[locIndex].tracks.findIndex(t => t.track_id === trackId);
-                if (trackIndex !== -1) {
-                    setCurrentLocalityIndex(locIndex);
-                    setCurrentTrackIndex(trackIndex);
-                    return updatedLocalities;
+                if (Number(updatedLocalities[locIndex].locality_id) === localityId) {
+                    const trackIndex = updatedLocalities[locIndex].tracks.findIndex(
+                        (t) => Number(t.track_id) === trackId
+                    );
+                    if (trackIndex !== -1) {
+                        setCurrentLocalityIndex(locIndex);
+                        setCurrentTrackIndex(trackIndex);
+                        return updatedLocalities;
+                    }
                 }
             }
 
