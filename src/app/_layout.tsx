@@ -2,11 +2,10 @@ import { configureApiClient } from '@/api/apiClient';
 import toastConfig from '@/config/toastConfig';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { LocationProvider } from '@/context/LocationContext';
-import { useLogTrackPlayerState } from '@/hooks/player/useLogTrackPlayerState';
-import { useSetupTrackPlayer } from '@/hooks/player/useSetupTrackPlayer';
+import { PlayerProvider } from '@/context/PlayerContext';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -18,12 +17,14 @@ const App = () => {
 		<SafeAreaProvider>
 			<LocationProvider>
 				<AuthProvider>
-					<GestureHandlerRootView style={{ flex: 1 }}>
-						<AppInitialiser />
-						<RootNavigation />
-						<StatusBar style="light" />
-						<Toast config={toastConfig} topOffset={insets.top + 20} />
-					</GestureHandlerRootView>
+					<PlayerProvider>
+						<GestureHandlerRootView style={{ flex: 1 }}>
+							<AppInitialiser />
+							<RootNavigation />
+							<StatusBar style="light" />
+							<Toast config={toastConfig} topOffset={insets.top + 20} />
+						</GestureHandlerRootView>
+					</PlayerProvider>
 				</AuthProvider>
 			</LocationProvider>
 		</SafeAreaProvider>
@@ -54,12 +55,6 @@ const AppInitialiser = () => {
 		}
 	}, [isAuthLoaded])
 
-
-	// (LEGACY) TrackPlayer Setup
-	const handleTrackPlayerLoaded = useCallback(() => { }, []);
-	useSetupTrackPlayer({ onLoad: handleTrackPlayerLoaded });
-	useLogTrackPlayerState();
-
 	return null;
 };
 
@@ -83,11 +78,7 @@ const RootNavigation = () => {
 			<Stack.Screen
 				name="player"
 				options={{
-					presentation: 'card',
-					gestureEnabled: true,
-					gestureDirection: 'vertical',
 					animation: 'slide_from_bottom',
-					animationDuration: 400,
 					headerShown: false,
 				}} />
 		</Stack>

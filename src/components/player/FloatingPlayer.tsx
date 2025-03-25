@@ -1,153 +1,157 @@
+import { usePlayer } from "@/context/PlayerContext";
 import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
-import { Animated, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import TrackPlayer from "react-native-track-player";
+import React, { useEffect, useRef, useState } from "react";
+import {
+    ActivityIndicator,
+    Animated,
+    Pressable,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import FastImage from "react-native-fast-image";
+import { MovingText } from "../misc/MovingText";
 import { PlayPauseButton } from "./PlayerControls";
 import { PlayerProgressBar } from "./PlayerProgressBar";
 
-const BACKGROUND_COLOR = "#6b2367";
-
-const DEFAULT_WIDTH = 70;
-const PLAYER_WIDTH = 375;
-
-const DEFAULT_BORDER_RADIUS = 35;
-const PLAYER_BORDER_RADIUS = 10;
-
-const LOCATION_HEIGHT = DEFAULT_WIDTH * 1.5;
-
-const TRANSITION_DURATION = 300;
-
 export const FloatingPlayer = () => {
-    const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+    const { currentLocality, currentTrack, isSessionActive, toggleSession } = usePlayer();
     const router = useRouter();
+    const [isPlayerLoading, setIsPlayerLoading] = useState(false);
+    const [shouldRender, setShouldRender] = useState(isSessionActive);
 
-    const [isPlayerToggleDisabled, setIsPlayerToggleDisabled] = useState(false);
-    const [isPlayerActive, setIsPlayerActive] = useState(false);
+    const sessionAnim = useRef(new Animated.Value(isSessionActive ? 1 : 0)).current;
 
-    const animWidth = useRef(new Animated.Value(DEFAULT_WIDTH)).current;
-    const animBorderRadius = useRef(new Animated.Value(DEFAULT_BORDER_RADIUS)).current;
-    const animLocationHeight = useRef(new Animated.Value(DEFAULT_WIDTH)).current;
-    const animContentOpacity = useRef(new Animated.Value(1)).current;
-
-    const animatePlayerToggle = (width: number, borderRadius: number) => {
-        const initialPlayerState = isPlayerActive;
-
-        // Introducing a small timeout (1ms) to ensure proper sequencing of animations.
-        // This ensures that React Native's Animated API processes the opacity animations correctly
-        // after the layout and state updates have been processed, avoiding potential conflicts
-        // with simultaneous animations (e.g., opacity change not taking effect).
-        setTimeout(() => {
-            Animated.timing(animContentOpacity, {
+    useEffect(() => {
+        if (isSessionActive) {
+            setShouldRender(true);
+            Animated.timing(sessionAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+        } else {
+            Animated.timing(sessionAnim, {
                 toValue: 0,
-                duration: TRANSITION_DURATION,
-                delay: 100,
-                useNativeDriver: false,
+                duration: 300,
+                useNativeDriver: true,
             }).start(() => {
-                Animated.parallel([
-                    Animated.timing(animWidth, {
-                        toValue: width,
-                        duration: TRANSITION_DURATION,
-                        useNativeDriver: false,
-                    }),
-                    Animated.timing(animLocationHeight, {
-                        toValue: initialPlayerState ? DEFAULT_WIDTH : LOCATION_HEIGHT,
-                        duration: TRANSITION_DURATION,
-                        useNativeDriver: false,
-                    }),
-                    Animated.timing(animBorderRadius, {
-                        toValue: borderRadius,
-                        duration: TRANSITION_DURATION,
-                        useNativeDriver: false,
-                    }),
-                ]).start(() => {
-                    setIsPlayerActive(prevState => !prevState);
-                    setIsPlayerToggleDisabled(false);
-
-                    setTimeout(() => {
-                        Animated.timing(animContentOpacity, {
-                            toValue: 1,
-                            duration: TRANSITION_DURATION,
-                            delay: 100,
-                            useNativeDriver: false,
-                        }).start();
-                    }, 1);
-                });
+                setShouldRender(false);
             });
-        }, 1);
-    };
-
-    const togglePlayer = async () => {
-        setIsPlayerToggleDisabled(true);
-
-        if (!isPlayerActive) {
-            await TrackPlayer.load({
-                url: "https://cdnt-preview.dzcdn.net/api/1/1/4/0/9/0/409dae71b378ecde365ffc5956f58ff5.mp3?hdnea=exp=1738793430~acl=/api/1/1/4/0/9/0/409dae71b378ecde365ffc5956f58ff5.mp3*~data=user_id=0,application_id=42~hmac=411ec21d6a315f6af8ecb13b2776635c0ae6b1908873fd02303dfea23553462a",
-                artist: "The Human League",
-                title: "Don't You Want Me"
-            });
-            await TrackPlayer.play();
-
-            animatePlayerToggle(PLAYER_WIDTH, PLAYER_BORDER_RADIUS);
-        } else {
-            TrackPlayer.reset();
-            animatePlayerToggle(DEFAULT_WIDTH, DEFAULT_BORDER_RADIUS);
         }
-    };
+    }, [isSessionActive]);
 
-    const handlePlayerPress = () => {
-        if (isPlayerActive) {
-            router.navigate('/player');
-        } else {
-            togglePlayer();
-        }
-    }
+    const playerTranslateY = sessionAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [100, 0],
+    });
+
+    const globeTranslateY = sessionAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 100],
+    });
+
+    const handleGoToLocality = () => {
+        if (!currentLocality) return;
+        router.push({
+            pathname: "/localities/[id]",
+            params: {
+                id: currentLocality.locality_id,
+                name: currentLocality.name,
+            },
+        });
+    };
 
     return (
         <View style={styles.container}>
-            <AnimatedTouchableOpacity activeOpacity={0.9} disabled={isPlayerToggleDisabled} style={[styles.locationContainer, { width: animWidth, height: animLocationHeight, borderRadius: animBorderRadius }]}>
-                {isPlayerActive && (
-                    <Animated.View style={[styles.locationContent, { opacity: animContentOpacity }]}>
-                        <View style={styles.textWrapper}>
-                            <Text style={styles.playlistLabel}>PLAYING FROM:</Text>
-                            <Text style={styles.playlist}>Ballyclare</Text>
-                        </View>
-                    </Animated.View>
-                )}
-            </AnimatedTouchableOpacity>
+            {(!isSessionActive || shouldRender) && (
+                <Animated.View style={[styles.animatedWrapper, { transform: [{ translateY: globeTranslateY }] }]}>
+                    <TouchableOpacity
+                        activeOpacity={0.9}
+                        style={[styles.playerContainer, { width: 70, borderRadius: 35 }]}
+                        onPress={async () => {
+                            setIsPlayerLoading(true);
+                            await toggleSession();
+                            setIsPlayerLoading(false);
+                        }}
+                    >
+                        {!isPlayerLoading ? (
+                            <FontAwesome name="globe" size={55} color="#FFF" />
+                        ) : (
+                            <ActivityIndicator size="large" color="#FFF" />
+                        )}
+                    </TouchableOpacity>
+                </Animated.View>
+            )}
 
-            <AnimatedTouchableOpacity activeOpacity={0.9} onPress={handlePlayerPress} disabled={isPlayerToggleDisabled} style={[styles.playerContainer, { width: animWidth, borderRadius: animBorderRadius }]}>
-                <Animated.View style={{ opacity: animContentOpacity }}>
-                    {!isPlayerActive ? (
-                        <FontAwesome name="globe" size={55} color="#FFF" />
-                    ) : (
-                        <>
+            {shouldRender && (
+                <>
+                    <Animated.View style={[styles.animatedWrapper, { transform: [{ translateY: playerTranslateY }] }]}>
+                        <TouchableOpacity activeOpacity={0.9} style={styles.locationContainer} onPress={handleGoToLocality}>
+                            <View style={styles.locationContent}>
+                                <View style={styles.textWrapper}>
+                                    <Text style={styles.localityLabel}>PLAYING FROM:</Text>
+                                    <View style={styles.localityText}>
+                                        <MovingText
+                                            text={currentLocality?.name || ''}
+                                            animationThreshold={15}
+                                            style={styles.localityTextStyle}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    </Animated.View>
+
+                    <Animated.View style={[styles.animatedWrapper, { transform: [{ translateY: playerTranslateY }] }]}>
+                        <TouchableOpacity
+                            activeOpacity={0.9}
+                            style={[styles.playerContainer, { width: 375, borderRadius: 10 }]}
+                            onPress={() => router.navigate("/player")}
+                        >
                             <View style={styles.playerContent}>
-                                <Image
+                                <FastImage
                                     source={{
-                                        uri: "https://upload.wikimedia.org/wikipedia/en/thumb/c/ce/Dare-cover.png/220px-Dare-cover.png",
+                                        uri:
+                                            currentTrack?.cover.small ||
+                                            currentTrack?.cover.medium ||
+                                            currentTrack?.cover.large,
                                     }}
-                                    style={styles.albumArt} />
+                                    style={styles.albumArt}
+                                />
                                 <View style={styles.textContainer}>
-                                    <Text style={styles.songName}>Don't You Want Me</Text>
-                                    <Text style={styles.artistName}>The Human League</Text>
+                                    <View style={styles.titleWrapper}>
+                                        <MovingText
+                                            text={currentTrack?.name || ''}
+                                            animationThreshold={20}
+                                            style={styles.songName}
+                                        />
+                                    </View>
+                                    <View style={styles.titleWrapper}>
+                                        <MovingText
+                                            text={currentTrack?.artists.join(", ") || ''}
+                                            animationThreshold={22}
+                                            style={styles.artistName}
+                                        />
+                                    </View>
                                 </View>
                                 <View style={styles.iconGroup}>
                                     <PlayPauseButton style={styles.iconWrapper} iconSize={20} />
-
-                                    <Pressable onPress={togglePlayer} style={styles.iconWrapper} disabled={isPlayerToggleDisabled}>
+                                    <Pressable onPress={toggleSession} style={styles.iconWrapper}>
                                         <FontAwesome name="stop" size={20} color="#FFF" />
                                     </Pressable>
                                 </View>
                             </View>
                             <PlayerProgressBar style={styles.progressBarWrapper} displayOnly={true} />
-                        </>
-                    )}
-                </Animated.View>
-            </AnimatedTouchableOpacity>
+                        </TouchableOpacity>
+                    </Animated.View>
+                </>
+            )}
         </View>
     );
-}
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -159,13 +163,15 @@ const styles = StyleSheet.create({
         right: 8,
         bottom: 10,
     },
-    playerContainer: {
-        backgroundColor: BACKGROUND_COLOR,
-        height: DEFAULT_WIDTH,
-        justifyContent: "center",
-        alignItems: "center",
+    animatedWrapper: {
         position: "absolute",
         bottom: 20,
+    },
+    playerContainer: {
+        backgroundColor: "#6b2367",
+        height: 70,
+        justifyContent: "center",
+        alignItems: "center",
     },
     playerContent: {
         flexDirection: "row",
@@ -176,34 +182,39 @@ const styles = StyleSheet.create({
     },
     locationContainer: {
         backgroundColor: "#171717",
-        height: DEFAULT_WIDTH,
-        justifyContent: "center",
+        height: 105,
+        width: 375,
+        borderRadius: 10,
+        justifyContent: "flex-start",
         alignItems: "center",
-        position: "absolute",
-        bottom: 20,
+        paddingTop: 5,
     },
     locationContent: {
         width: "100%",
-        position: "absolute",
-        top: 5,
         alignItems: "center",
+        paddingHorizontal: 10,
     },
     textWrapper: {
         flexDirection: "row",
-        justifyContent: "flex-start",
         alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
     },
-    playlistLabel: {
+    localityLabel: {
         color: "#FFF",
         fontSize: 11,
         fontWeight: "bold",
         opacity: 0.6,
     },
-    playlist: {
+    localityText: {
+        marginLeft: 10,
+        flexShrink: 1,
+        overflow: "hidden",
+    },
+    localityTextStyle: {
         color: "#FFF",
         fontSize: 18,
         fontWeight: "bold",
-        marginLeft: 10,
     },
     albumArt: {
         width: 50,
@@ -211,8 +222,14 @@ const styles = StyleSheet.create({
         borderRadius: 5,
     },
     textContainer: {
+        flex: 1,
         marginLeft: 10,
         justifyContent: "center",
+        overflow: "hidden",
+    },
+    titleWrapper: {
+        height: 22,
+        overflow: "hidden",
     },
     songName: {
         color: "#FFF",
@@ -228,7 +245,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "flex-end",
-        flex: 1,
+        flex: 0,
         paddingRight: 5,
     },
     iconWrapper: {
@@ -236,8 +253,8 @@ const styles = StyleSheet.create({
     },
     progressBarWrapper: {
         position: "absolute",
-        bottom: -10,
+        bottom: 0,
         left: 10,
         right: 10,
-    }
-})
+    },
+});

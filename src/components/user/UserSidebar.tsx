@@ -120,6 +120,7 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
                     </Text>
                 </View>
 
+                {/* TODO: This needs removed, here temporarily for admin stuffs */}
                 <View style={styles.navigationContainer}>
                     <TouchableOpacity style={styles.navButton} disabled={isLoading}>
                         <Text style={styles.navButtonText}>Profile</Text>

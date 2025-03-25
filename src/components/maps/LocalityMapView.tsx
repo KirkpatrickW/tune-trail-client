@@ -1,6 +1,8 @@
-import { localitiesService } from "@/api/localitiesService";
+import { localityService } from "@/api/localityService";
 import { mapStyle } from "@/constants/mapStyle";
 import { useLocation } from "@/context/LocationContext";
+import { usePlayer } from "@/context/PlayerContext";
+import * as Location from "expo-location";
 import { debounce } from "lodash";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
@@ -30,8 +32,8 @@ export interface LocalityMapViewHandle {
 interface LocalityMapViewProps {
     onLockStatusChange?: (isLocked: boolean) => void;
     onFetchingGridsChange?: (isFetching: boolean) => void;
+    onAreaNameChange?: (areaName: string) => void;
 }
-
 
 const USER_LOCATION_LOCK_LATITUDE_DELTA = 0.26;
 const USER_LOCATION_LOCK_LONGITUDE_DELTA = 0.15;
@@ -90,8 +92,9 @@ const getZoomLevel = (longitudeDelta: number): number => {
     return Math.round(Math.log(360 / longitudeDelta) / Math.LN2);
 };
 
-export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapViewProps>(({ onLockStatusChange, onFetchingGridsChange }, ref) => {
+export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapViewProps>(({ onLockStatusChange, onFetchingGridsChange, onAreaNameChange }, ref) => {
     const { userLocation } = useLocation();
+    const { radius: userRadius } = usePlayer();
     const { width, height } = Dimensions.get("window");
 
     const [isLocked, setIsLocked] = useState(true);
@@ -102,14 +105,14 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
         latitudeDelta: 180,
         longitudeDelta: 180,
     });
+    const [fetchingGridCount, setFetchingGridCount] = useState(0);
 
     const fetchingGrids = useRef<Set<string>>(new Set());
     const mapRef = useRef<MapView>(null);
 
     useEffect(() => {
-        const isFetching = fetchingGrids.current.size > 0;
-        onFetchingGridsChange?.(isFetching);
-    }, [fetchingGrids.current.size, onFetchingGridsChange]);
+        onFetchingGridsChange?.(fetchingGridCount > 0);
+    }, [fetchingGridCount, onFetchingGridsChange]);
 
     useEffect(() => {
         onLockStatusChange?.(isLocked);
@@ -128,6 +131,7 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                 if (mapRef.current) {
                     mapRef.current.animateToRegion(newRegion, 1000);
                     setRegion(newRegion);
+                    debouncedFetchLocalities(newRegion);
                     clearInterval(interval);
                 }
             }, 100);
@@ -199,8 +203,9 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                         setPointFeatures((prev) => mergePointFeatures(prev, cachedData));
                     } else if (!fetchingGrids.current.has(gridKey)) {
                         fetchingGrids.current.add(gridKey);
+                        setFetchingGridCount(fetchingGrids.current.size);
 
-                        localitiesService
+                        localityService
                             .getLocalities(grid.north, grid.east, grid.south, grid.west)
                             .then((response) => {
                                 setCachedGrid(gridKey, response.data);
@@ -211,6 +216,7 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                             })
                             .finally(() => {
                                 fetchingGrids.current.delete(gridKey);
+                                setFetchingGridCount(fetchingGrids.current.size);
                             });
                     }
                 });
@@ -234,7 +240,7 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                 toolbarEnabled={false}
                 moveOnMarkerPress={false}
                 showsCompass={false}
-                onRegionChangeComplete={(region) => {
+                onRegionChangeComplete={async (region) => {
                     setRegion(region);
                     debouncedFetchLocalities(region);
 
@@ -248,6 +254,23 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                         if (!isRegionAtUserLocation) {
                             setIsLocked(false);
                         }
+                    }
+
+                    try {
+                        const results = await Location.reverseGeocodeAsync({
+                            latitude: region.latitude,
+                            longitude: region.longitude,
+                        });
+
+                        if (results.length > 0) {
+                            const name = results[0].city || results[0].subregion || results[0].region || results[0].country || "Earth";
+                            onAreaNameChange?.(name);
+                        } else {
+                            onAreaNameChange?.("Earth");
+                        }
+                    } catch (err) {
+                        console.warn("Reverse geocoding failed", err);
+                        onAreaNameChange?.("Earth");
                     }
                 }}
                 rotateEnabled={false}
@@ -269,14 +292,14 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                                 latitude: userLocation.coords.latitude,
                                 longitude: userLocation.coords.longitude,
                             }}
-                            radius={5000}
+                            radius={userRadius}
                             strokeWidth={2}
                             strokeColor="#6b2367"
                             fillColor="rgba(107, 35, 103, 0.2)"
                         />
                     </>
                 )}
-                {SHOW_FETCHING_GRIDS_DEBUG_OVERLAY && (
+                {SHOW_FETCHING_GRIDS_DEBUG_OVERLAY && fetchingGridCount > 0 && (
                     Array.from(fetchingGrids.current).map((gridKey, index) => {
                         const [latGrid, lonGrid] = gridKey.split(",").map(Number);
                         const grid = {

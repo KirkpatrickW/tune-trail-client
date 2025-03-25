@@ -1,5 +1,5 @@
-import { localitiesService } from '@/api/localitiesService';
-import { tracksService } from '@/api/tracksService';
+import { localityService } from '@/api/localityService';
+import { trackService } from '@/api/trackService';
 import { TrackType } from '@/api/types/searchTracksResponse';
 import { useAuth } from '@/context/AuthContext';
 import { FontAwesome6 } from "@expo/vector-icons";
@@ -52,7 +52,7 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
         if (!isLoading) setIsLoading(true);
 
         try {
-            const searchTrackResponse = await tracksService.searchTracks(
+            const searchTrackResponse = await trackService.searchTracks(
                 searchText,
                 nextOffset,
                 cancelTokenSourceRef.current
@@ -74,7 +74,7 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
         setLoadingTrack(track_spotify_id);
 
         try {
-            await localitiesService.addTrackToLocality(localityId, track_spotify_id);
+            await localityService.addTrackToLocality(localityId, track_spotify_id);
             onTrackAdded();
             closeModal();
         } catch (error) {

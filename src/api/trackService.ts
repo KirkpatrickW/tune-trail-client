@@ -4,7 +4,7 @@ import type { SearchTracksResponse } from './types/searchTracksResponse';
 
 const BASE_URL = "/tracks";
 
-export const tracksService = {
+export const trackService = {
     searchTracks: async (query: string, offset: number = 0, cancelToken?: CancelTokenSource): Promise<AxiosResponse<SearchTracksResponse>> => {
         return await apiClient.get<SearchTracksResponse>(`${BASE_URL}/search`, {
             params: {

@@ -1,32 +1,28 @@
-import { MovingText } from "@/components/MovingText";
-import { LocationControls } from "@/components/player/LocationControls";
-import { PlayerControls } from "@/components/player/PlayerControls";
+import { MovingText } from "@/components/misc/MovingText";
+import { PlayerLocalityControls, PlayerTrackControls } from "@/components/player/PlayerControls";
 import { PlayerProgressBar } from "@/components/player/PlayerProgressBar";
 import { PlayerVolumeBar } from "@/components/player/PlayerVolumeBar";
-import { defaultStyles } from "@/styles";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { usePlayer } from "@/context/PlayerContext";
+import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useActiveTrack } from "react-native-track-player";
 
 const PlayerScreen = () => {
-    const activeTrack = useActiveTrack();
+    const { isSessionActive, currentTrack, currentLocality } = usePlayer();
 
     const { top, bottom } = useSafeAreaInsets();
 
-    if (!activeTrack) {
-        return null
-    }
+    if (!isSessionActive || !currentTrack || !currentLocality) return null;
 
     return (<View style={styles.overlayContainer}>
         <View style={styles.topBar}>
             <DismissPlayerSymbol />
-            <LocationControls style={{ marginTop: top + 20 }} />
+            <PlayerLocalityControls style={{ marginTop: top + 20 }} />
         </View>
 
         <View style={{ flex: 1, marginTop: top + 120, marginBottom: bottom }}>
             <View style={styles.artworkImageContainer}>
                 <Image source={{
-                    uri: "https://upload.wikimedia.org/wikipedia/en/thumb/c/ce/Dare-cover.png/220px-Dare-cover.png",
+                    uri: currentTrack.cover.large
                 }} resizeMode="cover" style={styles.artworkImage} />
             </View>
 
@@ -40,25 +36,27 @@ const PlayerScreen = () => {
                                 alignItems: 'center',
                             }}>
 
-                            <View style={styles.trackTitleContainer}>
+                            <View style={styles.movingTextContainer}>
                                 <MovingText
-                                    text={activeTrack.title ?? ''}
+                                    text={currentTrack.name}
                                     animationThreshold={30}
                                     style={styles.trackTitleText}
                                 />
                             </View>
                         </View>
 
-                        {activeTrack.artist && (
-                            <Text numberOfLines={1} style={[styles.trackArtistText, { marginTop: 6 }]}>
-                                {activeTrack.artist}
-                            </Text>
-                        )}
+                        <View style={styles.movingTextContainer}>
+                            <MovingText
+                                text={currentTrack.artists.join(", ")}
+                                animationThreshold={35}
+                                style={styles.trackArtistText}
+                            />
+                        </View>
                     </View>
 
                     <PlayerProgressBar style={{ marginTop: 32 }} />
 
-                    <PlayerControls style={{ marginTop: 40 }} />
+                    <PlayerTrackControls style={{ marginTop: 40 }} />
                 </View>
 
                 <PlayerVolumeBar style={{ marginTop: 'auto', marginBottom: 30 }} />
@@ -90,7 +88,7 @@ const DismissPlayerSymbol = () => {
 
 const styles = StyleSheet.create({
     overlayContainer: {
-        ...defaultStyles.container,
+        flex: 1,
         paddingHorizontal: 24,
         backgroundColor: "#6b2367"
     },
@@ -118,7 +116,7 @@ const styles = StyleSheet.create({
         height: '100%',
         resizeMode: 'cover',
     },
-    trackTitleContainer: {
+    movingTextContainer: {
         flex: 1,
         overflow: 'hidden',
     },

@@ -1,3 +1,5 @@
+import { Cover } from "./cover";
+
 export interface Track {
     track_id: string | null;
     spotify_id: string;
@@ -5,10 +7,6 @@ export interface Track {
     isrc: string;
     name: string;
     artists: string[];
-    cover: {
-        small: string | null;
-        medium: string | null;
-        large: string;
-    };
+    cover: Cover
     preview_url?: string;
 }
