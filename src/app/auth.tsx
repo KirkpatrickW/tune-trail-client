@@ -5,7 +5,7 @@ import { parseBackendError } from '@/utils/errorUtils';
 import { FontAwesome, FontAwesome6 } from '@expo/vector-icons';
 import { AxiosError } from 'axios';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const validateUsername = (username: string) => {
@@ -105,15 +105,15 @@ export default function AuthScreen() {
         setIsLoading(false);
     };
 
-    // Prevent authenticated users from accessing this screen.
-    if (isAuthenticated) {
-        if (router.canGoBack()) {
-            router.back();
-        } else {
-            router.replace('/(screens)');
+    useEffect(() => {
+        if (isAuthenticated) {
+            if (router.canGoBack()) {
+                router.back();
+            } else {
+                router.replace('/(screens)');
+            }
         }
-        return null;
-    }
+    }, [isAuthenticated]);
 
     return (
         <View style={styles.container}>
@@ -190,13 +190,6 @@ export default function AuthScreen() {
                         <FontAwesome name="user-secret" size={25} color="#fff" style={styles.buttonIcon} />
                         <Text style={styles.buttonText}>CONTINUE AS GUEST</Text>
                     </TouchableOpacity>
-
-                    <View style={styles.noteContainer}>
-                        <FontAwesome name="info-circle" size={20} color="#fff" style={styles.noteIcon} />
-                        <Text style={styles.noteText}>
-                            For the full experience, it's recommended to continue with Spotify with a Premium account; otherwise, the app will be in preview mode. You can link your Spotify account later to unlock full functionality.
-                        </Text>
-                    </View>
                 </>
             )}
 
@@ -315,27 +308,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
-    },
-    noteContainer: {
-        position: 'absolute',
-        flex: 1,
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: 15,
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: "#242424"
-    },
-    noteIcon: {
-        marginRight: 10,
-    },
-    noteText: {
-        color: '#fff',
-        fontSize: 14,
-        flex: 1,
-        textAlign: 'justify',
-        marginHorizontal: 10,
     },
     errorBox: {
         width: '100%',

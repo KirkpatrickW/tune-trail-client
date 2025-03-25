@@ -13,10 +13,6 @@ type PlayerButtonProps = {
 	iconSize?: number
 }
 
-type GoToLocalityProps = {
-	textScale?: number;
-}
-
 export const PlayerTrackControls = ({ style }: PlayerControlsProps) => {
 	return (
 		<View style={[styles.container, style]}>
@@ -75,7 +71,7 @@ export const SkipToPreviousTrackButton = ({ iconSize = 30 }: PlayerButtonProps) 
 	)
 }
 
-export const GoToLocalityButton = ({ textScale = 1 }: GoToLocalityProps) => {
+export const GoToLocalityButton = () => {
 	const { currentLocality } = usePlayer();
 	const router = useRouter();
 
@@ -91,12 +87,12 @@ export const GoToLocalityButton = ({ textScale = 1 }: GoToLocalityProps) => {
 				}
 			});
 		}}>
-			<Text style={{ color: "#fff", fontSize: 12 * textScale, opacity: 0.8 }}>PLAYING FROM:</Text>
+			<Text style={{ color: "#fff", fontSize: 12, opacity: 0.8 }}>PLAYING FROM:</Text>
 			<View style={{ maxWidth: '100%', overflow: "hidden" }}>
 				<MovingText
 					text={currentLocality.name}
 					animationThreshold={20}
-					style={{ color: "#fff", fontSize: 22 * textScale, fontWeight: "bold" }} />
+					style={{ color: "#fff", fontSize: 22, fontWeight: "bold" }} />
 			</View>
 		</TouchableOpacity>
 	)

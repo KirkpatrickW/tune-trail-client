@@ -2,6 +2,7 @@ import { localitiesService } from "@/api/localitiesService";
 import { mapStyle } from "@/constants/mapStyle";
 import { useLocation } from "@/context/LocationContext";
 import { usePlayer } from "@/context/PlayerContext";
+import * as Location from "expo-location";
 import { debounce } from "lodash";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
@@ -31,8 +32,8 @@ export interface LocalityMapViewHandle {
 interface LocalityMapViewProps {
     onLockStatusChange?: (isLocked: boolean) => void;
     onFetchingGridsChange?: (isFetching: boolean) => void;
+    onAreaNameChange?: (areaName: string) => void;
 }
-
 
 const USER_LOCATION_LOCK_LATITUDE_DELTA = 0.26;
 const USER_LOCATION_LOCK_LONGITUDE_DELTA = 0.15;
@@ -91,7 +92,7 @@ const getZoomLevel = (longitudeDelta: number): number => {
     return Math.round(Math.log(360 / longitudeDelta) / Math.LN2);
 };
 
-export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapViewProps>(({ onLockStatusChange, onFetchingGridsChange }, ref) => {
+export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapViewProps>(({ onLockStatusChange, onFetchingGridsChange, onAreaNameChange }, ref) => {
     const { userLocation } = useLocation();
     const { radius: userRadius } = usePlayer();
     const { width, height } = Dimensions.get("window");
@@ -238,7 +239,7 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                 toolbarEnabled={false}
                 moveOnMarkerPress={false}
                 showsCompass={false}
-                onRegionChangeComplete={(region) => {
+                onRegionChangeComplete={async (region) => {
                     setRegion(region);
                     debouncedFetchLocalities(region);
 
@@ -252,6 +253,23 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                         if (!isRegionAtUserLocation) {
                             setIsLocked(false);
                         }
+                    }
+
+                    try {
+                        const results = await Location.reverseGeocodeAsync({
+                            latitude: region.latitude,
+                            longitude: region.longitude,
+                        });
+
+                        if (results.length > 0) {
+                            const name = results[0].city || results[0].subregion || results[0].region || results[0].country || "Earth";
+                            onAreaNameChange?.(name);
+                        } else {
+                            onAreaNameChange?.("Earth");
+                        }
+                    } catch (err) {
+                        console.warn("Reverse geocoding failed", err);
+                        onAreaNameChange?.("Earth");
                     }
                 }}
                 rotateEnabled={false}

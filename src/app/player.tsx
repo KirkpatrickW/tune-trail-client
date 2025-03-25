@@ -4,7 +4,7 @@ import { PlayerProgressBar } from "@/components/player/PlayerProgressBar";
 import { PlayerVolumeBar } from "@/components/player/PlayerVolumeBar";
 import { usePlayer } from "@/context/PlayerContext";
 import { defaultStyles } from "@/styles";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const PlayerScreen = () => {
@@ -12,9 +12,7 @@ const PlayerScreen = () => {
 
     const { top, bottom } = useSafeAreaInsets();
 
-    if (!isSessionActive || !currentTrack || !currentLocality) {
-        return null
-    }
+    if (!isSessionActive || !currentTrack || !currentLocality) return null;
 
     return (<View style={styles.overlayContainer}>
         <View style={styles.topBar}>
@@ -39,7 +37,7 @@ const PlayerScreen = () => {
                                 alignItems: 'center',
                             }}>
 
-                            <View style={styles.trackTitleContainer}>
+                            <View style={styles.movingTextContainer}>
                                 <MovingText
                                     text={currentTrack.name}
                                     animationThreshold={30}
@@ -48,9 +46,13 @@ const PlayerScreen = () => {
                             </View>
                         </View>
 
-                        <Text numberOfLines={1} style={[styles.trackArtistText, { marginTop: 6 }]}>
-                            {currentTrack.artists}
-                        </Text>
+                        <View style={styles.movingTextContainer}>
+                            <MovingText
+                                text={currentTrack.artists.join(", ")}
+                                animationThreshold={35}
+                                style={styles.trackArtistText}
+                            />
+                        </View>
                     </View>
 
                     <PlayerProgressBar style={{ marginTop: 32 }} />
@@ -115,7 +117,7 @@ const styles = StyleSheet.create({
         height: '100%',
         resizeMode: 'cover',
     },
-    trackTitleContainer: {
+    movingTextContainer: {
         flex: 1,
         overflow: 'hidden',
     },

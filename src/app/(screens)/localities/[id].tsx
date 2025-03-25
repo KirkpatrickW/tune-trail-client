@@ -219,23 +219,21 @@ const styles = StyleSheet.create({
 		zIndex: 10,
 	},
 	leftHeader: {
-		flex: 1,
 		flexDirection: 'row',
-		justifyContent: 'flex-start',
 		alignItems: 'center',
+		minWidth: 60,
 	},
 	centerHeader: {
 		flex: 1,
 		alignItems: 'center',
 		justifyContent: 'center',
-		maxWidth: '100%',
 		overflow: 'hidden',
 	},
 	rightHeader: {
-		flex: 1,
 		flexDirection: 'row',
 		justifyContent: 'flex-end',
 		alignItems: 'center',
+		minWidth: 60,
 	},
 	headerTitle: {
 		fontSize: 22,
