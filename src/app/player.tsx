@@ -1,9 +1,8 @@
-import { MovingText } from "@/components/MovingText";
+import { MovingText } from "@/components/misc/MovingText";
 import { PlayerLocalityControls, PlayerTrackControls } from "@/components/player/PlayerControls";
 import { PlayerProgressBar } from "@/components/player/PlayerProgressBar";
 import { PlayerVolumeBar } from "@/components/player/PlayerVolumeBar";
 import { usePlayer } from "@/context/PlayerContext";
-import { defaultStyles } from "@/styles";
 import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -89,7 +88,7 @@ const DismissPlayerSymbol = () => {
 
 const styles = StyleSheet.create({
     overlayContainer: {
-        ...defaultStyles.container,
+        flex: 1,
         paddingHorizontal: 24,
         backgroundColor: "#6b2367"
     },

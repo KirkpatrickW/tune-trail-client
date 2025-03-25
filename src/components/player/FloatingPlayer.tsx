@@ -12,7 +12,7 @@ import {
     View,
 } from "react-native";
 import FastImage from "react-native-fast-image";
-import { MovingText } from "../MovingText";
+import { MovingText } from "../misc/MovingText";
 import { PlayPauseButton } from "./PlayerControls";
 import { PlayerProgressBar } from "./PlayerProgressBar";
 

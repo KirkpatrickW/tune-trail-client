@@ -1,10 +1,10 @@
-import { localitiesService } from '@/api/localitiesService';
-import { localityTracksService } from '@/api/localityTracksService';
-import { MovingText } from '@/components/MovingText';
+import { localityService } from '@/api/localityService';
+import { localityTrackService } from '@/api/localityTrackService';
+import { MovingText } from '@/components/misc/MovingText';
 import { SearchTracksModal } from "@/components/tracks/SearchTracksModal";
 import { useAuth } from '@/context/AuthContext';
 import { usePlayer } from '@/context/PlayerContext';
-import { LocalityTrack } from '@/types/LocalityTrack';
+import { LocalityTrack } from '@/types/locality/localityTrack';
 import { FontAwesome } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from "react";
@@ -36,7 +36,7 @@ const LocalityScreen = () => {
 		setTracks([]);
 
 		try {
-			const response = await localitiesService.getTracksInLocality(id as string);
+			const response = await localityService.getTracksInLocality(id as string);
 			setTracks(response.data);
 		} catch (error) { }
 
@@ -53,7 +53,7 @@ const LocalityScreen = () => {
 		const userVote = existingUserVote === buttonVote ? 0 : buttonVote;
 
 		try {
-			await localityTracksService.voteOnLocalityTrack(localityTrackId, userVote);
+			await localityTrackService.voteOnLocalityTrack(localityTrackId, userVote);
 
 			const voteChange = userVote - existingUserVote;
 

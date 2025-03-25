@@ -1,5 +1,4 @@
 import { usePlayer } from "@/context/PlayerContext";
-import { utilsStyles } from "@/styles";
 import React from "react";
 import { StyleSheet, Text, View, ViewStyle } from "react-native";
 import { Slider } from "react-native-awesome-slider";
@@ -49,7 +48,7 @@ export const PlayerProgressBar = ({ style, displayOnly = false }: PlayerProgress
                         progress={progress}
                         minimumValue={min}
                         maximumValue={max}
-                        containerStyle={utilsStyles.slider}
+                        containerStyle={{ height: 7, borderRadius: 16 }}
                         thumbWidth={0}
                         renderBubble={() => null}
                         theme={{

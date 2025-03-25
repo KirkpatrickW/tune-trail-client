@@ -1,4 +1,4 @@
-import { LocalityTrack } from '@/types/LocalityTrack';
+import { LocalityTrack } from '@/types/locality/localityTrack';
 import { PlayerLocality } from '@/types/player/playerLocality';
 
 
@@ -8,7 +8,7 @@ import apiClient from './apiClient';
 
 const BASE_URL = "/localities";
 
-export const localitiesService = {
+export const localityService = {
     getLocalities: async (north: number, east: number, south: number, west: number): Promise<AxiosResponse<supercluster.PointFeature<any>[]>> => {
         return await apiClient.get<supercluster.PointFeature<any>[]>(`${BASE_URL}`, {
             params: {

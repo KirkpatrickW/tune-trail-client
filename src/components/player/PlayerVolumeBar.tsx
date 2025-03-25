@@ -1,5 +1,4 @@
 import { usePlayer } from '@/context/PlayerContext'
-import { utilsStyles } from '@/styles'
 import { Ionicons } from '@expo/vector-icons'
 import { View, ViewProps } from 'react-native'
 import { Slider } from 'react-native-awesome-slider'
@@ -23,7 +22,7 @@ export const PlayerVolumeBar = ({ style }: ViewProps) => {
 					<Slider
 						progress={progress}
 						minimumValue={min}
-						containerStyle={utilsStyles.slider}
+						containerStyle={{ height: 7, borderRadius: 16 }}
 						onValueChange={(value) => {
 							setVolume(value)
 						}}

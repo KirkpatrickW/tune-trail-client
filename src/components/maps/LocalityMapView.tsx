@@ -1,4 +1,4 @@
-import { localitiesService } from "@/api/localitiesService";
+import { localityService } from "@/api/localityService";
 import { mapStyle } from "@/constants/mapStyle";
 import { useLocation } from "@/context/LocationContext";
 import { usePlayer } from "@/context/PlayerContext";
@@ -205,7 +205,7 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                         fetchingGrids.current.add(gridKey);
                         setFetchingGridCount(fetchingGrids.current.size);
 
-                        localitiesService
+                        localityService
                             .getLocalities(grid.north, grid.east, grid.south, grid.west)
                             .then((response) => {
                                 setCachedGrid(gridKey, response.data);

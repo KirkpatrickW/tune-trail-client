@@ -2,7 +2,7 @@ import { usePlayer } from "@/context/PlayerContext";
 import { FontAwesome, FontAwesome6 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
-import { MovingText } from "../MovingText";
+import { MovingText } from "../misc/MovingText";
 
 type PlayerControlsProps = {
 	style?: ViewStyle

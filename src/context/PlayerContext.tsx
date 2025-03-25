@@ -1,4 +1,4 @@
-import { localitiesService } from '@/api/localitiesService';
+import { localityService } from '@/api/localityService';
 import { useLocation } from '@/context/LocationContext';
 import { PlayerLocality } from '@/types/player/playerLocality';
 import { PlayerTrack } from '@/types/player/playerTrack';
@@ -131,7 +131,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             const { latitude, longitude } = location.coords;
             lastLocationRef.current = location;
 
-            const response = await localitiesService.getTracksForLocalities(latitude, longitude, radius);
+            const response = await localityService.getTracksForLocalities(latitude, longitude, radius);
             const newLocalities = response.data;
 
             if (sessionId !== sessionIdRef.current) {

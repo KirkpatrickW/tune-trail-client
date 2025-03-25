@@ -1,7 +1,7 @@
-import { MovingText } from "@/components/MovingText";
 import type { LocalityMapViewHandle } from "@/components/maps/LocalityMapView";
 import { LocalityMapView } from "@/components/maps/LocalityMapView";
 import RadiusSlider from "@/components/maps/RadiusSlider";
+import { MovingText } from "@/components/misc/MovingText";
 import { useUserSidebar } from "@/context/UserSidebarContext";
 import { FontAwesome6 } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";

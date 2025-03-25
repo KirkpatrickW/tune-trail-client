@@ -1,3 +1,5 @@
+import { Cover } from "../track/cover";
+
 export interface LocalityTrack {
     locality_track_id: number;
     user_id: string;
@@ -6,11 +8,7 @@ export interface LocalityTrack {
     spotify_id: string;
     name: string;
     artists: string[];
-    cover: {
-        small: string | null;
-        medium: string | null;
-        large: string;
-    };
+    cover: Cover;
     total_votes: number;
     user_vote: number;
 }
