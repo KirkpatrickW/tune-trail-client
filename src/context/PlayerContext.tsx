@@ -12,6 +12,7 @@ import React, {
     useRef,
     useState,
 } from 'react';
+import Toast from 'react-native-toast-message';
 import TrackPlayer, {
     AppKilledPlaybackBehavior,
     Event,
@@ -47,6 +48,44 @@ type PlayerContextType = {
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
+const distanceMoved = (loc1: LocationObject, loc2: LocationObject) => {
+    const dx = loc1.coords.latitude - loc2.coords.latitude;
+    const dy = loc1.coords.longitude - loc2.coords.longitude;
+    return Math.sqrt(dx * dx + dy * dy);
+};
+
+const createQueue = (localities: PlayerLocality[]): Track[] =>
+    localities.flatMap((locality) =>
+        locality.tracks.map((track): Track => ({
+            id: track.track_id,
+            url: track.preview_url,
+            name: track.name,
+            artist: track.artists.join(", "),
+            artwork: track.cover.large,
+        }))
+    );
+
+const calculateTrackFlatIndex = (localityIndex: number, trackIndex: number, allLocalities: PlayerLocality[]): number => {
+    let index = 0;
+    for (let i = 0; i < localityIndex; i++) {
+        index += allLocalities[i].tracks.length;
+    }
+    return index + trackIndex;
+};
+
+const tryRestorePlaybackPosition = (newLocalities: PlayerLocality[], currentTrackId: string | undefined): [number, number, boolean] => {
+    if (!currentTrackId) return [0, 0, false];
+
+    for (let locIndex = 0; locIndex < newLocalities.length; locIndex++) {
+        const trackIndex = newLocalities[locIndex].tracks.findIndex(
+            (track) => track.track_id === currentTrackId
+        );
+        if (trackIndex !== -1) return [locIndex, trackIndex, true];
+    }
+
+    return [0, 0, false];
+};
+
 export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const pathname = usePathname();
     const { userLocation } = useLocation();
@@ -63,6 +102,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const lastLocationRef = useRef<LocationObject | null>(null);
     const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
     const pauseTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const sessionIdRef = useRef<number>(0);
 
     const currentLocality = localities[currentLocalityIndex] ?? null;
     const currentTrack = currentLocality?.tracks[currentTrackIndex] ?? null;
@@ -71,51 +111,33 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const canSkipTrack = allTracksCount > 1;
     const canSkipLocality = localities.length > 1;
 
-    const distanceMoved = (loc1: LocationObject, loc2: LocationObject) => {
-        const dx = loc1.coords.latitude - loc2.coords.latitude;
-        const dy = loc1.coords.longitude - loc2.coords.longitude;
-        return Math.sqrt(dx * dx + dy * dy);
+    const clearTimers = () => {
+        if (refreshTimerRef.current) clearInterval(refreshTimerRef.current);
+        if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
     };
 
-    const createQueue = (localities: PlayerLocality[]): Track[] =>
-        localities.flatMap((locality) =>
-            locality.tracks.map((track): Track => ({
-                id: track.track_id,
-                url: track.preview_url,
-                name: track.name,
-                artist: track.artists.join(", "),
-                artwork: track.cover.large,
-            }))
-        );
+    const endSession = useCallback(async () => {
+        console.log('[Player] Ending session');
+        clearTimers();
+        await TrackPlayer.reset();
+        setIsSessionActive(false);
+        setLocalities([]);
+        setCurrentLocalityIndex(0);
+        setCurrentTrackIndex(0);
+    }, []);
 
-    const calculateTrackFlatIndex = (localityIndex: number, trackIndex: number, allLocalities: PlayerLocality[]): number => {
-        let index = 0;
-        for (let i = 0; i < localityIndex; i++) {
-            index += allLocalities[i].tracks.length;
-        }
-        return index + trackIndex;
-    };
-
-    const tryRestorePlaybackPosition = (newLocalities: PlayerLocality[], currentTrackId: string | undefined): [number, number, boolean] => {
-        if (!currentTrackId) return [0, 0, false];
-
-        for (let locIndex = 0; locIndex < newLocalities.length; locIndex++) {
-            const trackIndex = newLocalities[locIndex].tracks.findIndex(
-                (track) => track.track_id === currentTrackId
-            );
-            if (trackIndex !== -1) return [locIndex, trackIndex, true];
-        }
-
-        return [0, 0, false];
-    };
-
-    const loadTracks = useCallback(async (location: LocationObject): Promise<boolean> => {
+    const loadTracks = useCallback(async (location: LocationObject, sessionId: number): Promise<boolean> => {
         try {
             const { latitude, longitude } = location.coords;
             lastLocationRef.current = location;
 
             const response = await localitiesService.getTracksForLocalities(latitude, longitude, radius);
             const newLocalities = response.data;
+
+            if (sessionId !== sessionIdRef.current) {
+                console.warn("[Player] loadTracks aborted — stale session");
+                return false;
+            }
 
             if (!newLocalities.length && currentTrack && currentLocality) {
                 console.warn('[Player] No localities — inserting ghost locality');
@@ -237,20 +259,19 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
     }, [volume, currentTrack, currentLocality, radius]);
 
-    const toggleSession = async () => {
-        if (isSessionActive) {
-            await endSession();
-        } else {
-            await startSession();
-        }
-    };
-
     const startSession = useCallback(async () => {
         if (!isSessionActive && userLocation) {
+            sessionIdRef.current += 1;
+
             console.log('[Player] Starting session');
-            const success = await loadTracks(userLocation);
+            const success = await loadTracks(userLocation, sessionIdRef.current);
             if (!success) {
                 console.warn('[Player] Session not started due to track load failure');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Failed to start listening session',
+                    text2: 'No localities with tracks nearby.'
+                });
                 return;
             }
 
@@ -263,27 +284,33 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                     distanceMoved(userLocation, lastLocationRef.current) > 0.002
                 ) {
                     console.log('[Player] Movement detected. Refreshing tracks...');
-                    loadTracks(userLocation);
+                    Toast.show({
+                        type: 'info',
+                        text1: 'Location changed',
+                        text2: 'Refreshing tracks based on new location.'
+                    });
+                    (async () => {
+                        const success = await loadTracks(userLocation, sessionIdRef.current);
+                        if (!success) {
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Location refresh failed',
+                                text2: 'Could not refresh tracks after location change.',
+                            });
+                        }
+                    })();
                 }
             }, 5 * 60 * 1000);
         }
     }, [isSessionActive, userLocation, loadTracks, radius]);
 
-
-    const clearTimers = () => {
-        if (refreshTimerRef.current) clearInterval(refreshTimerRef.current);
-        if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
+    const toggleSession = async () => {
+        if (isSessionActive) {
+            await endSession();
+        } else {
+            await startSession();
+        }
     };
-
-    const endSession = useCallback(async () => {
-        console.log('[Player] Ending session');
-        clearTimers();
-        await TrackPlayer.reset();
-        setIsSessionActive(false);
-        setLocalities([]);
-        setCurrentLocalityIndex(0);
-        setCurrentTrackIndex(0);
-    }, []);
 
     const pause = () => {
         console.log('[Player] Paused');
@@ -291,6 +318,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
         pauseTimerRef.current = setTimeout(() => {
             console.log('[Player] Auto-ending session after pause timeout');
+            Toast.show({
+                type: 'info',
+                text1: 'Auto-ending listening session',
+                text2: 'Pause timeout reached.'
+            });
             endSession();
         }, 5 * 60 * 1000);
     };
@@ -299,6 +331,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         console.log('[Player] Resumed');
         TrackPlayer.play();
         if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
+    };
+
+    const seekToPosition = async (seconds: number) => {
+        console.log(`[Player] Seeking to ${seconds} seconds`);
+        await TrackPlayer.seekTo(seconds);
     };
 
     const setVolume = async (value: number) => {
@@ -327,6 +364,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             }
         } catch (err) {
             console.error('[Player] Failed to skip to next track:', err);
+            Toast.show({
+                type: 'error',
+                text1: 'Playback error',
+                text2: 'Could not skip to next track.'
+            });
             await endSession();
         }
     };
@@ -349,6 +391,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             }
         } catch (err) {
             console.error('[Player] Failed to skip to previous track:', err);
+            Toast.show({
+                type: 'error',
+                text1: 'Playback error',
+                text2: 'Could not skip to previous track.'
+            });
             await endSession();
         }
     };
@@ -370,6 +417,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             }
         } catch (err) {
             console.error('[Player] Failed to skip to next locality:', err);
+            Toast.show({
+                type: 'error',
+                text1: 'Playback error',
+                text2: 'Could not skip to next locality.'
+            });
             await endSession();
         }
     };
@@ -394,17 +446,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             }
         } catch (err) {
             console.error('[Player] Failed to skip to previous locality:', err);
+            Toast.show({
+                type: 'error',
+                text1: 'Playback error',
+                text2: 'Could not skip to previous locality.'
+            });
             await endSession();
-        }
-    };
-
-
-    const seekToPosition = async (seconds: number) => {
-        try {
-            console.log(`[Player] Seeking to ${seconds} seconds`);
-            await TrackPlayer.seekTo(seconds);
-        } catch (err) {
-            console.error('[Player] Failed to seek:', err);
         }
     };
 
@@ -439,19 +486,48 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         });
     });
 
+    useTrackPlayerEvents([Event.PlaybackQueueEnded], () => {
+        if (!isSessionActive) return;
+
+        const isOnlyGhost = localities.length === 1 && localities[0]?.locality_id?.startsWith("ghost-");
+
+        if (isOnlyGhost) {
+            console.log("[Player] Ghost track finished — ending session");
+            Toast.show({
+                type: "info",
+                text1: "Listening session ended",
+                text2: "No other tracks found nearby.",
+            });
+            endSession();
+        }
+    });
+
     useEffect(() => {
         if (!isSessionActive || !userLocation) return;
 
         const handler = setTimeout(() => {
             console.log('[Player] Radius changed — refreshing tracks');
-            loadTracks(userLocation);
+            Toast.show({
+                type: 'info',
+                text1: 'Search radius updated',
+                text2: 'Refreshing tracks based on new location.'
+            });
+            (async () => {
+                const success = await loadTracks(userLocation, sessionIdRef.current);
+                if (!success) {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Track refresh failed',
+                        text2: 'Could not refresh tracks after radius change.',
+                    });
+                }
+            })();
         }, 500);
 
         return () => {
             clearTimeout(handler);
         };
     }, [radius]);
-
 
     useEffect(() => {
         if (pathname?.startsWith("/auth") && isSessionActive) {
