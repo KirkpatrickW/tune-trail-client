@@ -3,6 +3,7 @@ import { localityTracksService } from '@/api/localityTracksService';
 import { MovingText } from '@/components/MovingText';
 import { SearchTracksModal } from "@/components/tracks/SearchTracksModal";
 import { useAuth } from '@/context/AuthContext';
+import { usePlayer } from '@/context/PlayerContext';
 import { LocalityTrack } from '@/types/LocalityTrack';
 import { FontAwesome } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -16,6 +17,7 @@ const LocalityScreen = () => {
 	const insets = useSafeAreaInsets();
 	const router = useRouter();
 	const { isAuthenticated } = useAuth();
+	const { currentLocality, currentTrack } = usePlayer();
 
 	const [isSearchTracksModalVisible, setIsSearchTracksModalVisible] = useState(false);
 	const [tracks, setTracks] = useState<LocalityTrack[]>([]);
@@ -126,59 +128,63 @@ const LocalityScreen = () => {
 							</View>
 						}
 						keyExtractor={(item) => item.track_id}
-						renderItem={({ item, index }) => (
-							<View style={styles.trackItem}>
-								<Text style={styles.trackIndex}>{index + 1}</Text>
-								<View style={styles.trackContent}>
-									<FastImage
-										source={{ uri: item.cover.small || item.cover.medium || item.cover.large }}
-										style={styles.trackImage}
-									/>
-									<View style={styles.trackInfo}>
-										<Text style={styles.trackTitle} numberOfLines={1}>
-											{item.name}
-										</Text>
-										<Text style={styles.trackArtist} numberOfLines={1}>
-											{item.artists.join(", ")}
-										</Text>
-										<Text style={styles.trackContributor} numberOfLines={1}>
-											Contribution by <Text style={styles.trackContributorUsername}>@{item.username}</Text>
-										</Text>
+						renderItem={({ item, index }) => {
+							const isCurrentTrack = currentLocality?.locality_id == id && currentTrack?.track_id == item.track_id;
+
+							return (
+								<View style={styles.trackItem}>
+									<Text style={[styles.trackIndex, isCurrentTrack && { color: '#6b2367' }]}>{index + 1}</Text>
+									<View style={styles.trackContent}>
+										<FastImage
+											source={{ uri: item.cover.small || item.cover.medium || item.cover.large }}
+											style={styles.trackImage}
+										/>
+										<View style={styles.trackInfo}>
+											<Text style={[styles.trackTitle, isCurrentTrack && { color: '#6b2367' }]} numberOfLines={1}>
+												{item.name}
+											</Text>
+											<Text style={styles.trackArtist} numberOfLines={1}>
+												{item.artists.join(", ")}
+											</Text>
+											<Text style={styles.trackContributor} numberOfLines={1}>
+												Contribution by <Text style={styles.trackContributorUsername}>@{item.username}</Text>
+											</Text>
+										</View>
+									</View>
+									<View style={styles.votingContainer}>
+										{isAuthenticated && (
+											<>
+												{votingState.localityTrackId === item.locality_track_id && votingState.voteType === 1 ? (
+													<ActivityIndicator size="small" color="white" />
+												) : (
+													<TouchableOpacity
+														onPress={() => handleVote(item.locality_track_id, 1)}
+														disabled={votingState.localityTrackId !== null}
+													>
+														<FontAwesome name="arrow-up" size={20} color={item.user_vote === 1 ? "#6b2367" : "white"} />
+													</TouchableOpacity>
+												)}
+											</>
+										)}
+										<Text style={styles.voteCount}>{formatVoteCount(item.total_votes)}</Text>
+										{isAuthenticated && (
+											<>
+												{votingState.localityTrackId === item.locality_track_id && votingState.voteType === -1 ? (
+													<ActivityIndicator size="small" color="white" />
+												) : (
+													<TouchableOpacity
+														onPress={() => handleVote(item.locality_track_id, -1)}
+														disabled={votingState.localityTrackId !== null}
+													>
+														<FontAwesome name="arrow-down" size={20} color={item.user_vote === -1 ? "#6b2367" : "white"} />
+													</TouchableOpacity>
+												)}
+											</>
+										)}
 									</View>
 								</View>
-								<View style={styles.votingContainer}>
-									{isAuthenticated && (
-										<>
-											{votingState.localityTrackId === item.locality_track_id && votingState.voteType === 1 ? (
-												<ActivityIndicator size="small" color="white" />
-											) : (
-												<TouchableOpacity
-													onPress={() => handleVote(item.locality_track_id, 1)}
-													disabled={votingState.localityTrackId !== null}
-												>
-													<FontAwesome name="arrow-up" size={20} color={item.user_vote === 1 ? "#6b2367" : "white"} />
-												</TouchableOpacity>
-											)}
-										</>
-									)}
-									<Text style={styles.voteCount}>{formatVoteCount(item.total_votes)}</Text>
-									{isAuthenticated && (
-										<>
-											{votingState.localityTrackId === item.locality_track_id && votingState.voteType === -1 ? (
-												<ActivityIndicator size="small" color="white" />
-											) : (
-												<TouchableOpacity
-													onPress={() => handleVote(item.locality_track_id, -1)}
-													disabled={votingState.localityTrackId !== null}
-												>
-													<FontAwesome name="arrow-down" size={20} color={item.user_vote === -1 ? "#6b2367" : "white"} />
-												</TouchableOpacity>
-											)}
-										</>
-									)}
-								</View>
-							</View>
-						)}
+							)
+						}}
 						indicatorStyle="white"
 						onEndReachedThreshold={0.5}
 						contentContainerStyle={{ flexGrow: 1 }}
@@ -275,6 +281,7 @@ const styles = StyleSheet.create({
 	},
 	trackIndex: {
 		color: '#fff',
+		fontWeight: 'bold',
 		fontSize: 16,
 		width: 30,
 		marginRight: 10,

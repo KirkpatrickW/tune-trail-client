@@ -1,6 +1,7 @@
 import { localitiesService } from "@/api/localitiesService";
 import { mapStyle } from "@/constants/mapStyle";
 import { useLocation } from "@/context/LocationContext";
+import { usePlayer } from "@/context/PlayerContext";
 import { debounce } from "lodash";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
@@ -92,6 +93,7 @@ const getZoomLevel = (longitudeDelta: number): number => {
 
 export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapViewProps>(({ onLockStatusChange, onFetchingGridsChange }, ref) => {
     const { userLocation } = useLocation();
+    const { radius: userRadius } = usePlayer();
     const { width, height } = Dimensions.get("window");
 
     const [isLocked, setIsLocked] = useState(true);
@@ -102,14 +104,14 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
         latitudeDelta: 180,
         longitudeDelta: 180,
     });
+    const [fetchingGridCount, setFetchingGridCount] = useState(0);
 
     const fetchingGrids = useRef<Set<string>>(new Set());
     const mapRef = useRef<MapView>(null);
 
     useEffect(() => {
-        const isFetching = fetchingGrids.current.size > 0;
-        onFetchingGridsChange?.(isFetching);
-    }, [fetchingGrids.current.size, onFetchingGridsChange]);
+        onFetchingGridsChange?.(fetchingGridCount > 0);
+    }, [fetchingGridCount, onFetchingGridsChange]);
 
     useEffect(() => {
         onLockStatusChange?.(isLocked);
@@ -199,6 +201,7 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                         setPointFeatures((prev) => mergePointFeatures(prev, cachedData));
                     } else if (!fetchingGrids.current.has(gridKey)) {
                         fetchingGrids.current.add(gridKey);
+                        setFetchingGridCount(fetchingGrids.current.size);
 
                         localitiesService
                             .getLocalities(grid.north, grid.east, grid.south, grid.west)
@@ -211,6 +214,7 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                             })
                             .finally(() => {
                                 fetchingGrids.current.delete(gridKey);
+                                setFetchingGridCount(fetchingGrids.current.size);
                             });
                     }
                 });
@@ -269,14 +273,14 @@ export const LocalityMapView = forwardRef<LocalityMapViewHandle, LocalityMapView
                                 latitude: userLocation.coords.latitude,
                                 longitude: userLocation.coords.longitude,
                             }}
-                            radius={5000}
+                            radius={userRadius}
                             strokeWidth={2}
                             strokeColor="#6b2367"
                             fillColor="rgba(107, 35, 103, 0.2)"
                         />
                     </>
                 )}
-                {SHOW_FETCHING_GRIDS_DEBUG_OVERLAY && (
+                {SHOW_FETCHING_GRIDS_DEBUG_OVERLAY && fetchingGridCount > 0 && (
                     Array.from(fetchingGrids.current).map((gridKey, index) => {
                         const [latGrid, lonGrid] = gridKey.split(",").map(Number);
                         const grid = {

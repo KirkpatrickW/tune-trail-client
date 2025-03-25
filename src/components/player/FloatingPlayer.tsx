@@ -1,150 +1,64 @@
+import { usePlayer } from "@/context/PlayerContext";
 import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
-import { Animated, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import TrackPlayer from "react-native-track-player";
+import React, { useState } from "react";
+import { ActivityIndicator, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import FastImage from "react-native-fast-image";
 import { PlayPauseButton } from "./PlayerControls";
 import { PlayerProgressBar } from "./PlayerProgressBar";
 
-const BACKGROUND_COLOR = "#6b2367";
-
-const DEFAULT_WIDTH = 70;
-const PLAYER_WIDTH = 375;
-
-const DEFAULT_BORDER_RADIUS = 35;
-const PLAYER_BORDER_RADIUS = 10;
-
-const LOCATION_HEIGHT = DEFAULT_WIDTH * 1.5;
-
-const TRANSITION_DURATION = 300;
-
 export const FloatingPlayer = () => {
-    const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+    const { currentLocality, currentTrack, isSessionActive, toggleSession } = usePlayer();
     const router = useRouter();
 
-    const [isPlayerToggleDisabled, setIsPlayerToggleDisabled] = useState(false);
-    const [isPlayerActive, setIsPlayerActive] = useState(false);
-
-    const animWidth = useRef(new Animated.Value(DEFAULT_WIDTH)).current;
-    const animBorderRadius = useRef(new Animated.Value(DEFAULT_BORDER_RADIUS)).current;
-    const animLocationHeight = useRef(new Animated.Value(DEFAULT_WIDTH)).current;
-    const animContentOpacity = useRef(new Animated.Value(1)).current;
-
-    const animatePlayerToggle = (width: number, borderRadius: number) => {
-        const initialPlayerState = isPlayerActive;
-
-        // Introducing a small timeout (1ms) to ensure proper sequencing of animations.
-        // This ensures that React Native's Animated API processes the opacity animations correctly
-        // after the layout and state updates have been processed, avoiding potential conflicts
-        // with simultaneous animations (e.g., opacity change not taking effect).
-        setTimeout(() => {
-            Animated.timing(animContentOpacity, {
-                toValue: 0,
-                duration: TRANSITION_DURATION,
-                delay: 100,
-                useNativeDriver: false,
-            }).start(() => {
-                Animated.parallel([
-                    Animated.timing(animWidth, {
-                        toValue: width,
-                        duration: TRANSITION_DURATION,
-                        useNativeDriver: false,
-                    }),
-                    Animated.timing(animLocationHeight, {
-                        toValue: initialPlayerState ? DEFAULT_WIDTH : LOCATION_HEIGHT,
-                        duration: TRANSITION_DURATION,
-                        useNativeDriver: false,
-                    }),
-                    Animated.timing(animBorderRadius, {
-                        toValue: borderRadius,
-                        duration: TRANSITION_DURATION,
-                        useNativeDriver: false,
-                    }),
-                ]).start(() => {
-                    setIsPlayerActive(prevState => !prevState);
-                    setIsPlayerToggleDisabled(false);
-
-                    setTimeout(() => {
-                        Animated.timing(animContentOpacity, {
-                            toValue: 1,
-                            duration: TRANSITION_DURATION,
-                            delay: 100,
-                            useNativeDriver: false,
-                        }).start();
-                    }, 1);
-                });
-            });
-        }, 1);
-    };
-
-    const togglePlayer = async () => {
-        setIsPlayerToggleDisabled(true);
-
-        if (!isPlayerActive) {
-            await TrackPlayer.load({
-                url: "https://cdnt-preview.dzcdn.net/api/1/1/4/0/9/0/409dae71b378ecde365ffc5956f58ff5.mp3?hdnea=exp=1738793430~acl=/api/1/1/4/0/9/0/409dae71b378ecde365ffc5956f58ff5.mp3*~data=user_id=0,application_id=42~hmac=411ec21d6a315f6af8ecb13b2776635c0ae6b1908873fd02303dfea23553462a",
-                artist: "The Human League",
-                title: "Don't You Want Me"
-            });
-            await TrackPlayer.play();
-
-            animatePlayerToggle(PLAYER_WIDTH, PLAYER_BORDER_RADIUS);
-        } else {
-            TrackPlayer.reset();
-            animatePlayerToggle(DEFAULT_WIDTH, DEFAULT_BORDER_RADIUS);
-        }
-    };
-
-    const handlePlayerPress = () => {
-        if (isPlayerActive) {
-            router.navigate('/player');
-        } else {
-            togglePlayer();
-        }
-    }
+    const [isPlayerLoading, setIsPlayerLoading] = useState(false);
 
     return (
         <View style={styles.container}>
-            <AnimatedTouchableOpacity activeOpacity={0.9} disabled={isPlayerToggleDisabled} style={[styles.locationContainer, { width: animWidth, height: animLocationHeight, borderRadius: animBorderRadius }]}>
-                {isPlayerActive && (
-                    <Animated.View style={[styles.locationContent, { opacity: animContentOpacity }]}>
-                        <View style={styles.textWrapper}>
-                            <Text style={styles.playlistLabel}>PLAYING FROM:</Text>
-                            <Text style={styles.playlist}>Ballyclare</Text>
-                        </View>
-                    </Animated.View>
-                )}
-            </AnimatedTouchableOpacity>
-
-            <AnimatedTouchableOpacity activeOpacity={0.9} onPress={handlePlayerPress} disabled={isPlayerToggleDisabled} style={[styles.playerContainer, { width: animWidth, borderRadius: animBorderRadius }]}>
-                <Animated.View style={{ opacity: animContentOpacity }}>
-                    {!isPlayerActive ? (
+            {!isSessionActive ? (
+                <TouchableOpacity activeOpacity={0.9} style={[styles.playerContainer, { width: 70, borderRadius: 35 }]} onPress={async () => {
+                    setIsPlayerLoading(true);
+                    await toggleSession();
+                    setIsPlayerLoading(false);
+                }}>
+                    {!isPlayerLoading ? (
                         <FontAwesome name="globe" size={55} color="#FFF" />
                     ) : (
-                        <>
-                            <View style={styles.playerContent}>
-                                <Image
-                                    source={{
-                                        uri: "https://upload.wikimedia.org/wikipedia/en/thumb/c/ce/Dare-cover.png/220px-Dare-cover.png",
-                                    }}
-                                    style={styles.albumArt} />
-                                <View style={styles.textContainer}>
-                                    <Text style={styles.songName}>Don't You Want Me</Text>
-                                    <Text style={styles.artistName}>The Human League</Text>
-                                </View>
-                                <View style={styles.iconGroup}>
-                                    <PlayPauseButton style={styles.iconWrapper} iconSize={20} />
-
-                                    <Pressable onPress={togglePlayer} style={styles.iconWrapper} disabled={isPlayerToggleDisabled}>
-                                        <FontAwesome name="stop" size={20} color="#FFF" />
-                                    </Pressable>
-                                </View>
-                            </View>
-                            <PlayerProgressBar style={styles.progressBarWrapper} displayOnly={true} />
-                        </>
+                        <ActivityIndicator size="large" color="#FFF" />
                     )}
-                </Animated.View>
-            </AnimatedTouchableOpacity>
+                </TouchableOpacity>
+            ) : (
+                <>
+                    <TouchableOpacity activeOpacity={0.9} style={styles.locationContainer}>
+                        <View style={styles.locationContent}>
+                            <View style={styles.textWrapper}>
+                                <Text style={styles.playlistLabel}>PLAYING FROM:</Text>
+                                <Text style={styles.playlist}>{currentLocality?.name}</Text>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity activeOpacity={0.9} style={[styles.playerContainer, { width: 375, borderRadius: 10 }]} onPress={() => router.navigate('/player')}>
+                        <View style={styles.playerContent}>
+                            <FastImage
+                                source={{ uri: currentTrack?.cover.small || currentTrack?.cover.medium || currentTrack?.cover.large }}
+                                style={styles.albumArt} />
+                            <View style={styles.textContainer}>
+                                <Text style={styles.songName}>{currentTrack?.name}</Text>
+                                <Text style={styles.artistName}>{currentTrack?.artists}</Text>
+                            </View>
+                            <View style={styles.iconGroup}>
+                                <PlayPauseButton style={styles.iconWrapper} iconSize={20} />
+
+                                <Pressable onPress={toggleSession} style={styles.iconWrapper}>
+                                    <FontAwesome name="stop" size={20} color="#FFF" />
+                                </Pressable>
+                            </View>
+                        </View>
+                        <PlayerProgressBar style={styles.progressBarWrapper} displayOnly={true} />
+                    </TouchableOpacity>
+                </>
+            )}
         </View>
     );
 }
@@ -160,8 +74,8 @@ const styles = StyleSheet.create({
         bottom: 10,
     },
     playerContainer: {
-        backgroundColor: BACKGROUND_COLOR,
-        height: DEFAULT_WIDTH,
+        backgroundColor: "#6b2367",
+        height: 70,
         justifyContent: "center",
         alignItems: "center",
         position: "absolute",
@@ -176,7 +90,9 @@ const styles = StyleSheet.create({
     },
     locationContainer: {
         backgroundColor: "#171717",
-        height: DEFAULT_WIDTH,
+        height: 105,
+        width: 375,
+        borderRadius: 10,
         justifyContent: "center",
         alignItems: "center",
         position: "absolute",
@@ -236,7 +152,7 @@ const styles = StyleSheet.create({
     },
     progressBarWrapper: {
         position: "absolute",
-        bottom: -10,
+        bottom: 0,
         left: 10,
         right: 10,
     }

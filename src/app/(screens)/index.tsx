@@ -1,5 +1,6 @@
 import type { LocalityMapViewHandle } from "@/components/maps/LocalityMapView";
 import { LocalityMapView } from "@/components/maps/LocalityMapView";
+import RadiusSlider from "@/components/maps/RadiusSlider";
 import { useUserSidebar } from "@/context/UserSidebarContext";
 import { FontAwesome6 } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
@@ -20,11 +21,8 @@ const IndexScreen = () => {
 	return (
 		<View style={styles.indexContainer}>
 			<LocalityMapView ref={localityMapViewRef} onLockStatusChange={setIsMapLocked} onFetchingGridsChange={setIsFetchingGrids} />
-			{/* Toolbar with two rows */}
 			<View style={[styles.toolbarContainer, { top: insets.top }]}>
-				{/* First Row: Existing Toolbar */}
 				<View style={styles.toolbarRow}>
-					{/* Left Group: User Button and Search Button */}
 					<View style={styles.leftGroup}>
 						<TouchableOpacity
 							onPress={toggleUserSidebar}
@@ -40,24 +38,16 @@ const IndexScreen = () => {
 						</TouchableOpacity>
 					</View>
 
-					{/* Location Container - Centered */}
 					<View style={styles.locationContainer}>
 						<Text style={styles.locationText}>BALLYCLARE</Text>
 					</View>
 
-					{/* Right Group: Spacer and Settings Button */}
 					<View style={styles.rightGroup}>
 						<View style={styles.rightSpacer} />
-						<TouchableOpacity
-							onPress={() => console.log("Settings button pressed")}
-							style={styles.toolbarButton}
-							activeOpacity={0.9}>
-							<FontAwesome6 name="gear" size={20} color="white" />
-						</TouchableOpacity>
+						<RadiusSlider />
 					</View>
 				</View>
 
-				{/* Second Row: Recenter Button */}
 				<View style={styles.toolbarMapTray}>
 					{!isMapLocked && (
 						<TouchableOpacity
@@ -132,7 +122,7 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		justifyContent: "center",
 		alignItems: "center",
-		marginTop: 10, // Space between the first row and the recenter button
+		marginTop: 10,
 	},
 	toolbarMapTrayIndicator: {
 		width: 40,

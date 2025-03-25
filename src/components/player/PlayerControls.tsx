@@ -1,52 +1,123 @@
+import { usePlayer } from "@/context/PlayerContext";
 import { FontAwesome, FontAwesome6 } from "@expo/vector-icons";
-import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
-import TrackPlayer, { useIsPlaying } from "react-native-track-player";
+import { useRouter } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import { MovingText } from "../MovingText";
 
 type PlayerControlsProps = {
-    style?: ViewStyle
+	style?: ViewStyle
 }
 
 type PlayerButtonProps = {
-    style?: ViewStyle
-    iconSize?: number
+	style?: ViewStyle
+	iconSize?: number
 }
 
-export const PlayerControls = ({ style }: PlayerControlsProps) => {
+type GoToLocalityProps = {
+	textScale?: number;
+}
+
+export const PlayerTrackControls = ({ style }: PlayerControlsProps) => {
 	return (
 		<View style={[styles.container, style]}>
 			<View style={styles.row}>
-                <SkipToPreviousButton />
+				<SkipToPreviousTrackButton />
 
-                <PlayPauseButton />
+				<PlayPauseButton />
 
-                <SkipToNextButton />
+				<SkipToNextTrackButton />
 			</View>
 		</View>
 	)
 }
 
-export const PlayPauseButton = ({style, iconSize = 48 }: PlayerButtonProps) => {
-    const {playing} = useIsPlaying();
+export const PlayerLocalityControls = ({ style }: PlayerControlsProps) => {
+	return (
+		<View style={[styles.container, style]}>
+			<View style={styles.row}>
+				<SkipToPreviousLocalityButton />
 
-    return <View style={[style, {height: iconSize}]}>
-        <TouchableOpacity activeOpacity={0.9} onPress={playing ? TrackPlayer.pause : TrackPlayer.play}>
-            <FontAwesome name={playing ? "pause" : "play"} size={iconSize} color="#FFF" />
-        </TouchableOpacity>
-    </View>
+				<GoToLocalityButton />
+
+				<SkipToNextLocalityButton />
+			</View>
+		</View>
+	);
 }
 
-export const SkipToNextButton = ({ iconSize = 30 }: PlayerButtonProps) => {
+export const PlayPauseButton = ({ style, iconSize = 48 }: PlayerButtonProps) => {
+	const { isPlaying, pause, resume } = usePlayer();
+
+	return <View style={[style, { height: iconSize }]}>
+		<TouchableOpacity activeOpacity={0.9} onPress={isPlaying ? pause : resume}>
+			<FontAwesome name={isPlaying ? "pause" : "play"} size={iconSize} color="#FFF" />
+		</TouchableOpacity>
+	</View>
+}
+
+export const SkipToNextTrackButton = ({ iconSize = 30 }: PlayerButtonProps) => {
+	const { canSkipTrack, skipToNextTrack } = usePlayer();
+
 	return (
-		<TouchableOpacity activeOpacity={0.9} onPress={() => TrackPlayer.skipToNext()}>
-			<FontAwesome6 name="forward" size={iconSize} color="#FFF" />
+		<TouchableOpacity activeOpacity={0.9} onPress={skipToNextTrack} disabled={!canSkipTrack}>
+			<FontAwesome6 name="forward" size={iconSize} color="#FFF" style={{ opacity: canSkipTrack ? 1 : 0.5 }} />
 		</TouchableOpacity>
 	)
 }
 
-export const SkipToPreviousButton = ({ iconSize = 30 }: PlayerButtonProps) => {
+export const SkipToPreviousTrackButton = ({ iconSize = 30 }: PlayerButtonProps) => {
+	const { canSkipTrack, skipToPreviousTrack } = usePlayer();
+
 	return (
-		<TouchableOpacity activeOpacity={0.9} onPress={() => TrackPlayer.skipToPrevious()}>
-			<FontAwesome6 name="backward" size={iconSize} color="#FFF" />
+		<TouchableOpacity activeOpacity={0.9} onPress={skipToPreviousTrack} disabled={!canSkipTrack}>
+			<FontAwesome6 name="backward" size={iconSize} color="#FFF" style={{ opacity: canSkipTrack ? 1 : 0.5 }} />
+		</TouchableOpacity>
+	)
+}
+
+export const GoToLocalityButton = ({ textScale = 1 }: GoToLocalityProps) => {
+	const { currentLocality } = usePlayer();
+	const router = useRouter();
+
+	if (!currentLocality) return null;
+
+	return (
+		<TouchableOpacity activeOpacity={0.9} style={{ flex: 1, alignItems: "center" }} onPress={() => {
+			router.push({
+				pathname: "/localities/[id]",
+				params: {
+					id: currentLocality.locality_id,
+					name: currentLocality.name
+				}
+			});
+		}}>
+			<Text style={{ color: "#fff", fontSize: 12 * textScale, opacity: 0.8 }}>PLAYING FROM:</Text>
+			<View style={{ maxWidth: '100%', overflow: "hidden" }}>
+				<MovingText
+					text={currentLocality.name}
+					animationThreshold={20}
+					style={{ color: "#fff", fontSize: 22 * textScale, fontWeight: "bold" }} />
+			</View>
+		</TouchableOpacity>
+	)
+}
+
+export const SkipToNextLocalityButton = ({ iconSize = 30 }: PlayerButtonProps) => {
+	const { canSkipLocality, skipToNextLocality } = usePlayer();
+
+	return (
+		<TouchableOpacity activeOpacity={0.9} onPress={skipToNextLocality} disabled={!canSkipLocality}>
+			<FontAwesome6 name="forward" size={iconSize} color="#FFF" style={{ opacity: canSkipLocality ? 1 : 0.5 }} />
+		</TouchableOpacity>
+	)
+}
+
+export const SkipToPreviousLocalityButton = ({ iconSize = 30 }: PlayerButtonProps) => {
+	const { canSkipLocality, skipToPreviousLocality } = usePlayer();
+
+	return (
+		<TouchableOpacity activeOpacity={0.9} onPress={skipToPreviousLocality} disabled={!canSkipLocality}>
+			<FontAwesome6 name="backward" size={iconSize} color="#FFF" style={{ opacity: canSkipLocality ? 1 : 0.5 }} />
 		</TouchableOpacity>
 	)
 }
@@ -59,5 +130,5 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		justifyContent: "space-evenly",
 		alignItems: "center",
-	},
+	}
 })
