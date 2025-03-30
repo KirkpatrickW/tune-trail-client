@@ -394,6 +394,13 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 await TrackPlayer.skip(flatIndex);
                 setCurrentLocalityIndex(currentLocalityIndex - 1);
                 setCurrentTrackIndex(lastTrackIndex);
+            } else {
+                const lastLocalityIndex = localities.length - 1;
+                const lastTrackIndex = localities[lastLocalityIndex].tracks.length - 1;
+                const flatIndex = calculateTrackFlatIndex(lastLocalityIndex, lastTrackIndex, localities);
+                await TrackPlayer.skip(flatIndex);
+                setCurrentLocalityIndex(lastLocalityIndex);
+                setCurrentTrackIndex(lastTrackIndex);
             }
         } catch (err) {
             console.error('[Player] Failed to skip to previous track:', err);
@@ -570,7 +577,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setup();
 
         return () => {
-            if (isSessionActive) {
+            if (sessionIdRef.current) {
                 endSession();
             }
         };
