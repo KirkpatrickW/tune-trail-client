@@ -1,7 +1,7 @@
 import { authService } from '@/api/authService';
 import { UserDetails } from '@/types/auth/user_details';
 import { parseBackendError } from '@/utils/errorUtils';
-import { AxiosError } from 'axios';
+import { isAxiosError } from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
@@ -84,12 +84,12 @@ export const CompleteSpotifyModal: React.FC<CompleteSpotifyModalProps> = ({ isVi
     const usernameError = usernameTouched ? validateUsername(username) : '';
     const isFormValid = usernameError === '' && username;
 
-    const renderError = (error: string) => {
-        return error ? <Text style={styles.errorText}>{`• ${error}`}</Text> : null;
+    const renderError = (error: string, index?: number) => {
+        return error ? <Text key={index} style={styles.errorText}>{`• ${error}`}</Text> : null;
     };
 
     const handleBackendError = (error: unknown) => {
-        if (error instanceof AxiosError) {
+        if (isAxiosError(error)) {
             const errorDetails = error.response?.data?.detail;
             setRequestErrors(parseBackendError(errorDetails));
             return;
@@ -110,14 +110,15 @@ export const CompleteSpotifyModal: React.FC<CompleteSpotifyModalProps> = ({ isVi
             closeModal();
         } catch (error) {
             handleBackendError(error);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     if (!isVisible) return null;
 
     return (
-        <View style={styles.modalContainer}>
+        <View style={styles.modalContainer} testID="complete-spotify-modal">
             <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
 
             <Animated.View style={[styles.modalContent, { transform: [{ translateY: slideAnim }] }]}>
@@ -128,6 +129,7 @@ export const CompleteSpotifyModal: React.FC<CompleteSpotifyModalProps> = ({ isVi
 
                 <View style={styles.inputContainer}>
                     <TextInput
+                        testID="username-input"
                         placeholder="Username"
                         value={username}
                         onChangeText={setUsername}
@@ -143,14 +145,15 @@ export const CompleteSpotifyModal: React.FC<CompleteSpotifyModalProps> = ({ isVi
                         editable={!isLoading} />
                 </View>
 
-                {((usernameTouched || requestErrors.length > 0) && (usernameError || requestErrors.length > 0)) ? (
-                    <View style={styles.errorBox}>
-                        {renderError(usernameError)}
-                        {requestErrors.map((err, index) => renderError(err))}
+                {((usernameTouched || requestErrors.length > 0) && (usernameError || requestErrors.length > 0)) && (
+                    <View style={styles.errorBox} testID="error-box">
+                        {usernameError && renderError(usernameError)}
+                        {requestErrors.map((err, index) => renderError(err, index))}
                     </View>
-                ) : null}
+                )}
 
                 <TouchableOpacity
+                    testID="save-username-button"
                     style={[styles.saveUsernameButton, { opacity: isFormValid ? 1 : 0.6 }]}
                     onPress={handleSaveUsername}
                     disabled={!isFormValid || isLoading}>

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -113,16 +113,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -131,9 +129,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -155,14 +155,14 @@ import { useSharedValue } from 'react-native-reanimated'
 &nbsp;
 import { useDerivedValue } from 'react-native-reanimated'
 &nbsp;
-export const PlayerVolumeBar = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >({</span> style }: ViewProps) =&gt; {</span>
-	const { volume, setVolume } = <span class="cstat-no" title="statement not covered" >usePlayer()</span>
+export const PlayerVolumeBar = ({ style }: ViewProps) =&gt; {
+	const { volume, setVolume } = usePlayer()
 &nbsp;
-	const progress = <span class="cstat-no" title="statement not covered" >useDerivedValue(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >volume ?? 0)</span></span>
-	const min = <span class="cstat-no" title="statement not covered" >useSharedValue(0)</span>
-	const max = <span class="cstat-no" title="statement not covered" >useSharedValue(1)</span>
+	const progress = useDerivedValue(() =&gt; volume ?? 0)
+	const min = useSharedValue(0)
+	const max = useSharedValue(1)
 &nbsp;
-<span class="cstat-no" title="statement not covered" >	return (</span>
+	return (
 		&lt;View style={style}&gt;
 			&lt;View style={{ flexDirection: 'row', alignItems: 'center' }}&gt;
 				&lt;Ionicons name="volume-low" size={20} color="#fff" style={{ opacity: 0.8 }} /&gt;
@@ -172,10 +172,10 @@ export const PlayerVolumeBar = <span class="cstat-no" title="statement not cover
 						progress={progress}
 						minimumValue={min}
 						containerStyle={{ height: 7, borderRadius: 16 }}
-						onValueChange={<span class="fstat-no" title="function not covered" >(v</span>alue) =&gt; {
-<span class="cstat-no" title="statement not covered" >							setVolume(value)</span>
+						onValueChange={(value) =&gt; {
+							setVolume(value)
 						}}
-						renderBubble={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >null}</span>
+						renderBubble={() =&gt; null}
 						theme={{
 							maximumTrackTintColor: 'rgba(255,255,255,0.4)',
 							minimumTrackTintColor: 'rgba(255,255,255,0.6)',
@@ -196,7 +196,7 @@ export const PlayerVolumeBar = <span class="cstat-no" title="statement not cover
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-03-30T20:54:19.390Z
+                at 2025-04-02T21:09:44.178Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

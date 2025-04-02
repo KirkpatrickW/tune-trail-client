@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -118,7 +118,8 @@
 <a name='L53'></a><a href='#L53'>53</a>
 <a name='L54'></a><a href='#L54'>54</a>
 <a name='L55'></a><a href='#L55'>55</a>
-<a name='L56'></a><a href='#L56'>56</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -128,18 +129,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -153,10 +152,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -183,35 +185,36 @@ type LocalityClusterProps = {
     mapRef: React.RefObject&lt;MapView&gt;;
 };
 &nbsp;
-export const LocalityCluster = <span class="cstat-no" title="statement not covered" >React.memo(<span class="fstat-no" title="function not covered" >({</span> clusterFeature, mapRef }: LocalityClusterProps) =&gt; {</span>
-    const handleClusterPress = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-        const expansionRegion = <span class="cstat-no" title="statement not covered" >clusterFeature.properties.getExpansionRegion();</span>
+export const LocalityCluster = React.memo(({ clusterFeature, mapRef }: LocalityClusterProps) =&gt; {
+    const handleClusterPress = () =&gt; {
+        const expansionRegion = clusterFeature.properties.getExpansionRegion();
 &nbsp;
-<span class="cstat-no" title="statement not covered" >        if (mapRef.current) {</span>
-<span class="cstat-no" title="statement not covered" >            mapRef.current.animateToRegion(expansionRegion, 1000);</span>
+        if (mapRef.current) {
+            mapRef.current.animateToRegion(expansionRegion, 1000);
         }
     };
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return (</span>
+    return (
         &lt;Marker
+            testID="cluster-marker"
             coordinate={{
                 latitude: clusterFeature.geometry.coordinates[1],
                 longitude: clusterFeature.geometry.coordinates[0],
             }}
             anchor={{ x: 0.5, y: 0.5 }}
             onPress={handleClusterPress}&gt;
-            &lt;View style={styles.clusterContainer}&gt;
+            &lt;View testID="cluster-container" style={styles.clusterContainer}&gt;
                 &lt;Text style={styles.clusterText}&gt;
                     {clusterFeature.properties.point_count}
                 &lt;/Text&gt;
             &lt;/View&gt;
         &lt;/Marker&gt;
     );
-}, <span class="fstat-no" title="function not covered" >(p</span>revProps, nextProps) =&gt;
-<span class="cstat-no" title="statement not covered" >    prevProps.clusterFeature === nextProps.clusterFeature</span>
+}, (prevProps, nextProps) =&gt;
+    prevProps.clusterFeature === nextProps.clusterFeature
 );
 &nbsp;
-const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.create({</span>
+const styles = StyleSheet.create({
     clusterContainer: {
         backgroundColor: "#421d40",
         padding: 5,
@@ -235,7 +238,7 @@ const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-03-30T20:54:19.390Z
+                at 2025-04-02T21:09:44.178Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -23,6 +23,7 @@ export const LocalityMarker = React.memo(({ pointFeature }: LocalityMarkerProps)
 
     return (
         <Marker
+            testID="locality-marker"
             onPress={() => {
                 router.push({
                     pathname: "/localities/[id]",
@@ -42,7 +43,7 @@ export const LocalityMarker = React.memo(({ pointFeature }: LocalityMarkerProps)
                 <View style={containerStyle}>
                     <Text style={textStyle}>{pointFeature.properties.name}</Text>
                     {hasTracks && (
-                        <View style={styles.trackCountBadge}>
+                        <View testID="track-count-badge" style={styles.trackCountBadge}>
                             <Text style={styles.trackCountBadgeText}>{trackCountDisplay}</Text>
                         </View>
                     )}

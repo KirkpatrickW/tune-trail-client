@@ -19,12 +19,12 @@ export const LocationPermissionRequiredModal: React.FC<LocationPermissionRequire
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
     useEffect(() => {
-        if (!permissionGranted) {
+        if (permissionGranted === false) {
             openModal();
-        } else if (permissionGranted && isModalVisible) {
+        } else if (permissionGranted === true && isModalVisible) {
             closeModal();
         }
-    }, [permissionGranted])
+    }, [permissionGranted, isModalVisible])
 
     const openModal = () => {
         setIsModalVisible(true)
@@ -61,8 +61,8 @@ export const LocationPermissionRequiredModal: React.FC<LocationPermissionRequire
     if (!isModalVisible) return null;
 
     return (
-        <View style={styles.modalContainer}>
-            <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
+        <View style={styles.modalContainer} testID="location-permission-modal">
+            <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} testID="location-permission-backdrop" />
 
             <Animated.View style={[styles.modalContent, { transform: [{ translateY: slideAnim }] }]}>
                 <FontAwesome name="exclamation-circle" size={40} style={styles.modalIcon} />

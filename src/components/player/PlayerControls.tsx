@@ -15,7 +15,7 @@ type PlayerButtonProps = {
 
 export const PlayerTrackControls = ({ style }: PlayerControlsProps) => {
 	return (
-		<View style={[styles.container, style]}>
+		<View testID="player-track-controls" style={[styles.container, style]}>
 			<View style={styles.row}>
 				<SkipToPreviousTrackButton />
 
@@ -29,7 +29,7 @@ export const PlayerTrackControls = ({ style }: PlayerControlsProps) => {
 
 export const PlayerLocalityControls = ({ style }: PlayerControlsProps) => {
 	return (
-		<View style={[styles.container, style]}>
+		<View testID="player-locality-controls" style={[styles.container, style]}>
 			<View style={styles.row}>
 				<SkipToPreviousLocalityButton />
 
@@ -45,7 +45,7 @@ export const PlayPauseButton = ({ style, iconSize = 48 }: PlayerButtonProps) => 
 	const { isPlaying, pause, resume } = usePlayer();
 
 	return <View style={[style, { height: iconSize }]}>
-		<TouchableOpacity activeOpacity={0.9} onPress={isPlaying ? pause : resume}>
+		<TouchableOpacity testID="play-pause-button" activeOpacity={0.9} onPress={isPlaying ? pause : resume}>
 			<FontAwesome name={isPlaying ? "pause" : "play"} size={iconSize} color="#FFF" />
 		</TouchableOpacity>
 	</View>
@@ -55,8 +55,8 @@ export const SkipToNextTrackButton = ({ iconSize = 30 }: PlayerButtonProps) => {
 	const { canSkipTrack, skipToNextTrack } = usePlayer();
 
 	return (
-		<TouchableOpacity activeOpacity={0.9} onPress={skipToNextTrack} disabled={!canSkipTrack}>
-			<FontAwesome6 name="forward" size={iconSize} color="#FFF" style={{ opacity: canSkipTrack ? 1 : 0.5 }} />
+		<TouchableOpacity testID="skip-next-track-button" activeOpacity={0.9} onPress={skipToNextTrack} disabled={!canSkipTrack} style={{ opacity: canSkipTrack ? 1 : 0.5 }}>
+			<FontAwesome6 name="forward" size={iconSize} color="#FFF" />
 		</TouchableOpacity>
 	)
 }
@@ -65,8 +65,8 @@ export const SkipToPreviousTrackButton = ({ iconSize = 30 }: PlayerButtonProps) 
 	const { canSkipTrack, skipToPreviousTrack } = usePlayer();
 
 	return (
-		<TouchableOpacity activeOpacity={0.9} onPress={skipToPreviousTrack} disabled={!canSkipTrack}>
-			<FontAwesome6 name="backward" size={iconSize} color="#FFF" style={{ opacity: canSkipTrack ? 1 : 0.5 }} />
+		<TouchableOpacity testID="skip-previous-track-button" activeOpacity={0.9} onPress={skipToPreviousTrack} disabled={!canSkipTrack} style={{ opacity: canSkipTrack ? 1 : 0.5 }}>
+			<FontAwesome6 name="backward" size={iconSize} color="#FFF" />
 		</TouchableOpacity>
 	)
 }
@@ -78,7 +78,7 @@ export const GoToLocalityButton = () => {
 	if (!currentLocality) return null;
 
 	return (
-		<TouchableOpacity activeOpacity={0.9} style={{ flex: 1, alignItems: "center" }} onPress={() => {
+		<TouchableOpacity testID="go-to-locality-button" activeOpacity={0.9} style={{ flex: 1, alignItems: "center" }} onPress={() => {
 			router.push({
 				pathname: "/localities/[id]",
 				params: {
@@ -102,8 +102,8 @@ export const SkipToNextLocalityButton = ({ iconSize = 30 }: PlayerButtonProps) =
 	const { canSkipLocality, skipToNextLocality } = usePlayer();
 
 	return (
-		<TouchableOpacity activeOpacity={0.9} onPress={skipToNextLocality} disabled={!canSkipLocality}>
-			<FontAwesome6 name="forward" size={iconSize} color="#FFF" style={{ opacity: canSkipLocality ? 1 : 0.5 }} />
+		<TouchableOpacity testID="skip-next-locality-button" activeOpacity={0.9} onPress={skipToNextLocality} disabled={!canSkipLocality} style={{ opacity: canSkipLocality ? 1 : 0.5 }}>
+			<FontAwesome6 name="forward" size={iconSize} color="#FFF" />
 		</TouchableOpacity>
 	)
 }
@@ -112,8 +112,8 @@ export const SkipToPreviousLocalityButton = ({ iconSize = 30 }: PlayerButtonProp
 	const { canSkipLocality, skipToPreviousLocality } = usePlayer();
 
 	return (
-		<TouchableOpacity activeOpacity={0.9} onPress={skipToPreviousLocality} disabled={!canSkipLocality}>
-			<FontAwesome6 name="backward" size={iconSize} color="#FFF" style={{ opacity: canSkipLocality ? 1 : 0.5 }} />
+		<TouchableOpacity testID="skip-previous-locality-button" activeOpacity={0.9} onPress={skipToPreviousLocality} disabled={!canSkipLocality} style={{ opacity: canSkipLocality ? 1 : 0.5 }}>
+			<FontAwesome6 name="backward" size={iconSize} color="#FFF" />
 		</TouchableOpacity>
 	)
 }

@@ -69,6 +69,7 @@ export const FloatingPlayer = () => {
             {(!isSessionActive || shouldRender) && (
                 <Animated.View style={[styles.animatedWrapper, { transform: [{ translateY: globeTranslateY }] }]}>
                     <TouchableOpacity
+                        testID="globe-button"
                         activeOpacity={0.9}
                         style={[styles.playerContainer, { width: 70, borderRadius: 35 }]}
                         onPress={async () => {
@@ -80,7 +81,7 @@ export const FloatingPlayer = () => {
                         {!isPlayerLoading ? (
                             <FontAwesome name="globe" size={55} color="#FFF" />
                         ) : (
-                            <ActivityIndicator size="large" color="#FFF" />
+                            <ActivityIndicator testID="loading-indicator" size="large" color="#FFF" />
                         )}
                     </TouchableOpacity>
                 </Animated.View>
@@ -89,11 +90,16 @@ export const FloatingPlayer = () => {
             {shouldRender && (
                 <>
                     <Animated.View style={[styles.animatedWrapper, { transform: [{ translateY: playerTranslateY }] }]}>
-                        <TouchableOpacity activeOpacity={0.9} style={styles.locationContainer} onPress={handleGoToLocality}>
+                        <TouchableOpacity
+                            testID="location-container"
+                            activeOpacity={0.9}
+                            style={styles.locationContainer}
+                            onPress={handleGoToLocality}
+                        >
                             <View style={styles.locationContent}>
                                 <View style={styles.textWrapper}>
-                                    <Text style={styles.localityLabel}>PLAYING FROM:</Text>
-                                    <View style={styles.localityText}>
+                                    <Text testID="locality-label" style={styles.localityLabel}>PLAYING FROM:</Text>
+                                    <View testID="locality-name-container" style={styles.localityText}>
                                         <MovingText
                                             text={currentLocality?.name || ''}
                                             animationThreshold={15}
@@ -107,12 +113,14 @@ export const FloatingPlayer = () => {
 
                     <Animated.View style={[styles.animatedWrapper, { transform: [{ translateY: playerTranslateY }] }]}>
                         <TouchableOpacity
+                            testID="player-container"
                             activeOpacity={0.9}
                             style={[styles.playerContainer, { width: 375, borderRadius: 10 }]}
                             onPress={() => router.navigate("/player")}
                         >
                             <View style={styles.playerContent}>
                                 <FastImage
+                                    testID="album-art"
                                     source={{
                                         uri:
                                             currentTrack?.cover.small ||
@@ -122,14 +130,14 @@ export const FloatingPlayer = () => {
                                     style={styles.albumArt}
                                 />
                                 <View style={styles.textContainer}>
-                                    <View style={styles.titleWrapper}>
+                                    <View testID="track-name-container" style={styles.titleWrapper}>
                                         <MovingText
                                             text={currentTrack?.name || ''}
                                             animationThreshold={20}
                                             style={styles.songName}
                                         />
                                     </View>
-                                    <View style={styles.titleWrapper}>
+                                    <View testID="artist-name-container" style={styles.titleWrapper}>
                                         <MovingText
                                             text={currentTrack?.artists.join(", ") || ''}
                                             animationThreshold={22}
@@ -139,7 +147,7 @@ export const FloatingPlayer = () => {
                                 </View>
                                 <View style={styles.iconGroup}>
                                     <PlayPauseButton style={styles.iconWrapper} iconSize={20} />
-                                    <Pressable onPress={toggleSession} style={styles.iconWrapper}>
+                                    <Pressable testID="stop-button" onPress={toggleSession} style={styles.iconWrapper}>
                                         <FontAwesome name="stop" size={20} color="#FFF" />
                                     </Pressable>
                                 </View>

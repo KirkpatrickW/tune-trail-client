@@ -111,20 +111,26 @@ export const SpotifyAuthModal: React.FC<SpotifyAuthModalProps> = ({ isVisible, o
 
     return (
         <View style={styles.modalContainer}>
-            <Animated.View style={[
-                styles.modalContent,
-                {
-                    transform: [{ translateY: slideAnim }],
-                    height: screenHeight,
-                }
-            ]}>
+            <Animated.View
+                testID="spotify-auth-modal"
+                style={[
+                    styles.modalContent,
+                    {
+                        transform: [{ translateY: slideAnim }],
+                        height: screenHeight,
+                    }
+                ]}>
                 <View style={[styles.topBar, { paddingTop: insets.top + 20 }]}>
-                    <TouchableOpacity onPress={closeModal} style={styles.backButton}>
+                    <TouchableOpacity
+                        testID="back-button"
+                        onPress={closeModal}
+                        style={styles.backButton}>
                         <FontAwesome name="chevron-left" size={20} color="white" />
                     </TouchableOpacity>
                 </View>
 
                 <WebView
+                    testID="spotify-webview"
                     source={{ uri: SPOTIFY_AUTH_URL }}
                     onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
                     startInLoadingState={true}

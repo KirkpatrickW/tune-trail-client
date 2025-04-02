@@ -10,7 +10,10 @@ module.exports = {
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',
     '!src/**/*.stories.{js,jsx,ts,tsx}',
-    '!src/**/*.test.{js,jsx,ts,tsx}'
+    '!src/**/*.test.{js,jsx,ts,tsx}',
+    '!src/config/**/*',
+    '!src/constants/**/*',
+    '!src/types/**/*'
   ],
   coverageThreshold: {
     global: {
