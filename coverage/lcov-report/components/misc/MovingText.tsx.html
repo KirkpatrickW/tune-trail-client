@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">71.42% </span>
+                <span class="strong">14.28% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>10/14</span>
+                <span class='fraction'>2/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">25% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/4</span>
+                <span class='fraction'>1/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">69.23% </span>
+                <span class="strong">15.38% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>9/13</span>
+                <span class='fraction'>2/13</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -130,7 +130,8 @@
 <a name='L65'></a><a href='#L65'>65</a>
 <a name='L66'></a><a href='#L66'>66</a>
 <a name='L67'></a><a href='#L67'>67</a>
-<a name='L68'></a><a href='#L68'>68</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -149,13 +150,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -175,13 +176,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -217,12 +219,12 @@ export type MovingTextProps = {
 &nbsp;
 export const MovingText = ({ text, animationThreshold, style }: MovingTextProps) =&gt; {
 	const translateX = useSharedValue(0)
-	const shouldAnimate = text.length &gt;= animationThreshold
+	const shouldAnimate = <span class="cstat-no" title="statement not covered" >text.length &gt;= animationThreshold</span>
 &nbsp;
-	const textWidth = text.length * 3
+	const textWidth = <span class="cstat-no" title="statement not covered" >text.length * 3</span>
 &nbsp;
-	useEffect(() =&gt; {
-		<span class="missing-if-branch" title="else path not taken" >E</span>if (!shouldAnimate) return
+<span class="cstat-no" title="statement not covered" >	useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >		if (!shouldAnimate) <span class="cstat-no" title="statement not covered" >return</span></span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >		translateX.value = withDelay(</span>
 			1000,
@@ -242,19 +244,20 @@ export const MovingText = ({ text, animationThreshold, style }: MovingTextProps)
 		}
 	}, [translateX, text, animationThreshold, shouldAnimate, textWidth])
 &nbsp;
-	const animatedStyle = useAnimatedStyle(() =&gt; {
-		return {
+	const animatedStyle = <span class="cstat-no" title="statement not covered" >useAnimatedStyle(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >		return {</span>
 			transform: [{ translateX: translateX.value }],
 		}
 	})
 &nbsp;
-	return (
+<span class="cstat-no" title="statement not covered" >	return (</span>
 		&lt;Animated.Text
+			testID="moving-text"
 			numberOfLines={1}
 			style={[
 				style,
 				animatedStyle,
-				shouldAnimate &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >{</span>
+				shouldAnimate &amp;&amp; {
 					width: 9999, // preventing the ellipsis from appearing
 					paddingLeft: 16, // avoid the initial character being barely visible
 				},
@@ -271,7 +274,7 @@ export const MovingText = ({ text, animationThreshold, style }: MovingTextProps)
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-04-02T21:09:44.178Z
+                at 2025-04-04T16:52:15.722Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

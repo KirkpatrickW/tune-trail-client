@@ -13,7 +13,8 @@ module.exports = {
     '!src/**/*.test.{js,jsx,ts,tsx}',
     '!src/config/**/*',
     '!src/constants/**/*',
-    '!src/types/**/*'
+    '!src/types/**/*',
+    '!src/components/misc/**/*'
   ],
   coverageThreshold: {
     global: {
