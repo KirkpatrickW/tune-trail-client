@@ -4,7 +4,6 @@ import React from 'react';
 import { AppState, Text, View } from 'react-native';
 import { LocationProvider, useLocation } from '../../src/context/LocationContext';
 
-// ✅ Mock expo-location with safe defaults
 jest.mock('expo-location', () => ({
     getForegroundPermissionsAsync: jest.fn().mockResolvedValue({ status: 'undetermined' }),
     getCurrentPositionAsync: jest.fn(),
@@ -14,12 +13,10 @@ jest.mock('expo-location', () => ({
     },
 }));
 
-// ✅ Mock LocationPermissionRequiredModal
 jest.mock('../../src/components/location/LocationPermissionRequiredModal', () => ({
     LocationPermissionRequiredModal: () => null,
 }));
 
-// ✅ Proper AppState mock with .remove()
 jest.mock('react-native/Libraries/AppState/AppState', () => ({
     addEventListener: jest.fn(() => ({
         remove: jest.fn(),

@@ -1,7 +1,7 @@
 import { localityService } from '@/api/localityService';
 import { trackService } from '@/api/trackService';
-import { TrackType } from '@/api/types/searchTracksResponse';
 import { useAuth } from '@/context/AuthContext';
+import { TrackType } from '@/types/api/searchTracksResponse';
 import { FontAwesome6 } from "@expo/vector-icons";
 import axios, { CancelTokenSource } from 'axios';
 import React, { useEffect, useRef, useState } from 'react';

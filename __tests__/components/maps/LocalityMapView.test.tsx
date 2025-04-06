@@ -557,7 +557,6 @@ describe('LocalityMapView', () => {
         jest.requireMock('react-native-clusterer').Clusterer = originalClusterer;
     });
 
-    // Test for lines 132-135: animating to new user location when locked
     it('animates to new user location when locked', async () => {
         // Create a spy on the animateToRegion function
         const mapRef = React.createRef<LocalityMapViewHandle>();
@@ -621,7 +620,6 @@ describe('LocalityMapView', () => {
         jest.restoreAllMocks();
     });
 
-    // Test for line 269: setting area name to Earth when no geocoding results
     it('sets area name to Earth when no geocoding results', async () => {
         // Reset the mock to ensure clean state
         mockOnAreaNameChange.mockClear();
@@ -682,7 +680,6 @@ describe('LocalityMapView', () => {
         jest.requireMock('react-native-maps').default = originalMapView;
     });
 
-    // Test for lines 304-332: rendering fetching grids debug overlay
     it('renders fetching grids debug overlay', async () => {
         // Mock getLocalities to take a long time to resolve
         (localityService.getLocalities as jest.Mock).mockImplementation(() =>

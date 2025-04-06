@@ -1,4 +1,3 @@
-// __tests__/apiClient.test.ts
 import { parseBackendError } from '@/utils/errorUtils';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
@@ -25,7 +24,6 @@ jest.mock('axios', () => {
     return {
         create: jest.fn(() => mockAxiosInstance),
         put: jest.fn(),
-        // optionally mock others here like `get` globally if needed
     };
 });
 
