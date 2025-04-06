@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -206,14 +206,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -265,10 +265,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -286,7 +286,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -341,14 +341,14 @@ import { usePlayer } from "@/context/PlayerContext";
 import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 &nbsp;
-const PlayerScreen = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-    const { isSessionActive, currentTrack, currentLocality } = <span class="cstat-no" title="statement not covered" >usePlayer();</span>
+const PlayerScreen = () =&gt; {
+    const { isSessionActive, currentTrack, currentLocality } = usePlayer();
 &nbsp;
-    const { top, bottom } = <span class="cstat-no" title="statement not covered" >useSafeAreaInsets();</span>
+    const { top, bottom } = useSafeAreaInsets();
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    if (!isSessionActive || !currentTrack || !currentLocality) <span class="cstat-no" title="statement not covered" >return null;</span></span>
+    if (!isSessionActive || !currentTrack || !currentLocality) return null;
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return (&lt;View style={styles.overlayContainer}&gt;</span>
+    return (&lt;View style={styles.overlayContainer}&gt;
         &lt;View style={styles.topBar}&gt;
             &lt;DismissPlayerSymbol /&gt;
             &lt;PlayerLocalityControls style={{ marginTop: top + 20 }} /&gt;
@@ -400,10 +400,10 @@ const PlayerScreen = <span class="cstat-no" title="statement not covered" ><span
     &lt;/View&gt;);
 }
 &nbsp;
-const DismissPlayerSymbol = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-    const { top } = <span class="cstat-no" title="statement not covered" >useSafeAreaInsets();</span>
+const DismissPlayerSymbol = () =&gt; {
+    const { top } = useSafeAreaInsets();
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return (&lt;View style={{</span>
+    return (&lt;View style={{
         position: "absolute",
         top: top + 8,
         left: 0,
@@ -421,7 +421,7 @@ const DismissPlayerSymbol = <span class="cstat-no" title="statement not covered"
     &lt;/View&gt;)
 }
 &nbsp;
-const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.create({</span>
+const styles = StyleSheet.create({
     overlayContainer: {
         flex: 1,
         paddingHorizontal: 24,
@@ -475,7 +475,7 @@ export default PlayerScreen;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-04-04T17:07:24.852Z
+                at 2025-04-06T21:30:29.376Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -35,13 +35,15 @@ const IndexScreen = () => {
 						<TouchableOpacity
 							onPress={toggleUserSidebar}
 							style={styles.toolbarButton}
-							activeOpacity={0.9}>
+							activeOpacity={0.9}
+							testID="user-button">
 							<FontAwesome6 name="user" size={20} color="white" />
 						</TouchableOpacity>
 						<TouchableOpacity
 							onPress={() => console.log("Search button pressed")}
 							style={styles.toolbarButton}
-							activeOpacity={0.9}>
+							activeOpacity={0.9}
+							testID="search-button">
 							<FontAwesome6 name="magnifying-glass" size={20} color="white" />
 						</TouchableOpacity>
 					</View>
@@ -67,13 +69,14 @@ const IndexScreen = () => {
 						<TouchableOpacity
 							onPress={handleRecenter}
 							style={styles.toolbarMapTrayIndicator}
-							activeOpacity={0.9}>
+							activeOpacity={0.9}
+							testID="recenter-button">
 							<FontAwesome6 name="location-crosshairs" size={20} color="white" />
 						</TouchableOpacity>
 					)}
 
 					{isFetchingGrids && (
-						<View style={styles.toolbarMapTrayIndicator}>
+						<View style={styles.toolbarMapTrayIndicator} testID="loading-indicator">
 							<ActivityIndicator size="small" color="white" />
 						</View>
 					)}

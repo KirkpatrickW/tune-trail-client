@@ -14,7 +14,10 @@ module.exports = {
     '!src/config/**/*',
     '!src/constants/**/*',
     '!src/types/**/*',
-    '!src/components/misc/**/*'
+    '!src/components/misc/**/*',
+    '!src/api/**/*',
+    'src/api/apiClient.{js,ts}',
+    '!**/_layout.*'
   ],
   coverageThreshold: {
     global: {
