@@ -52,6 +52,20 @@ npx expo run:android
 
 This will create a development build of the app and run it on the Android emulator. Ensure Android Studio is set up and running correctly.
 
+### Running Tests
+
+To run the tests for the application, use the following command:
+
+```bash
+npx jest
+```
+
+This will execute all test files in the project. For code coverage, use:
+
+```bash
+npx jest --coverage
+```
+
 ### Using Android Studio
 
 - Open Android Studio and set up an Android Virtual Device (AVD) if not already configured.

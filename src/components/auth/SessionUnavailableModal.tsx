@@ -67,13 +67,13 @@ const SessionUnavailableModal: React.FC<LogoutModalProps> = ({ isVisible, onClos
     if (!isVisible) return null;
 
     return (
-        <View style={styles.modalContainer}>
+        <View style={styles.modalContainer} testID="session-unavailable-modal">
             <TouchableWithoutFeedback onPress={closeModal}>
-                <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
+                <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} testID="session-unavailable-backdrop" />
             </TouchableWithoutFeedback>
 
             <Animated.View style={[styles.modalContent, { transform: [{ translateY: slideAnim }] }]}>
-                <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                <TouchableOpacity style={styles.closeButton} onPress={closeModal} testID="session-unavailable-close">
                     <FontAwesome name="times" size={24} color="#a1a1a1" />
                 </TouchableOpacity>
 
@@ -84,7 +84,8 @@ const SessionUnavailableModal: React.FC<LogoutModalProps> = ({ isVisible, onClos
                 <TouchableOpacity
                     style={styles.signinButton}
                     onPress={handleSignIn}
-                    activeOpacity={0.9}>
+                    activeOpacity={0.9}
+                    testID="session-unavailable-signin">
                     <FontAwesome name="sign-in" size={20} color="#fff" style={styles.icon} />
                     <Text style={styles.buttonText}>SIGN IN</Text>
                 </TouchableOpacity>

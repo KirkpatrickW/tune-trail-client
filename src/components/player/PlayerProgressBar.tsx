@@ -37,7 +37,7 @@ export const PlayerProgressBar = ({ style, displayOnly = false }: PlayerProgress
     const trackRemainingTime = formatSecondsToMinutes(trackDuration - playbackPosition);
 
     return (
-        <View style={style}>
+        <View testID="progress-container" style={style}>
             {displayOnly ? (
                 <View style={[styles.progressBar, { backgroundColor: 'rgba(255,255,255,0.4)' }]}>
                     <Animated.View style={[styles.progress, useAnimatedStyle(() => { return { width: `${progress.value * 100}%` } })]} />

@@ -1,6 +1,6 @@
 import type { AxiosResponse, CancelTokenSource } from 'axios';
+import type { SearchTracksResponse } from '../types/api/searchTracksResponse';
 import apiClient from './apiClient';
-import type { SearchTracksResponse } from './types/searchTracksResponse';
 
 const BASE_URL = "/tracks";
 

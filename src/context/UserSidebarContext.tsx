@@ -6,7 +6,7 @@ type UserSidebarContextType = {
     toggleUserSidebar: () => void;
 };
 
-const UserSidebarContext = createContext<UserSidebarContextType>({} as UserSidebarContextType);
+const UserSidebarContext = createContext<UserSidebarContextType | undefined>(undefined);
 
 export const UserSidebarProvider = ({ children }: { children: React.ReactNode }) => {
     const [isUserSidebarVisible, setIsUserSidebarVisible] = useState(false);

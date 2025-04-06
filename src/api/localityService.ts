@@ -29,7 +29,7 @@ export const localityService = {
         });
     },
     getTracksInLocality: async (localityId: string): Promise<AxiosResponse<LocalityTrack[]>> => {
-        return await apiClient.get<LocalityTrack[]>(`${BASE_URL}/${localityId}/tracks`);
+        return await apiClient.get<LocalityTrack[]>(`${BASE_URL}/${localityId}/tracks`, { showToast: false });
     },
     addTrackToLocality: async (localityId: string, spotifyTrackId: string): Promise<AxiosResponse<{ message: string }>> => {
         return await apiClient.put<{ message: string }>(`${BASE_URL}/${localityId}/tracks/${spotifyTrackId}`);

@@ -7,7 +7,7 @@ import { usePlayer } from '@/context/PlayerContext';
 import { LocalityTrack } from '@/types/locality/localityTrack';
 import { FontAwesome } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -87,11 +87,11 @@ const LocalityScreen = () => {
 					height: 80 + insets.top
 				}]}>
 					<View style={styles.leftHeader}>
-						<TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
-							<FontAwesome name="chevron-left" size={20} color="white" />
+						<TouchableOpacity onPress={() => router.back()} style={styles.headerButton} testID="back-button">
+							<FontAwesome name="chevron-left" size={20} color="white" testID="icon-chevron-left" />
 						</TouchableOpacity>
-						<TouchableOpacity onPress={fetchTracks} style={styles.headerButton} disabled={isLoading}>
-							<FontAwesome name="refresh" size={20} color="white" />
+						<TouchableOpacity onPress={fetchTracks} style={styles.headerButton} disabled={isLoading} testID="refresh-button">
+							<FontAwesome name="refresh" size={20} color="white" testID="icon-refresh" />
 						</TouchableOpacity>
 					</View>
 
@@ -105,8 +105,8 @@ const LocalityScreen = () => {
 
 					<View style={styles.rightHeader}>
 						{isAuthenticated &&
-							<TouchableOpacity onPress={() => setIsSearchTracksModalVisible(true)} style={styles.headerButton} disabled={isLoading}>
-								<FontAwesome name="plus" size={20} color="white" />
+							<TouchableOpacity onPress={() => setIsSearchTracksModalVisible(true)} style={styles.headerButton} disabled={isLoading} testID="add-track-button">
+								<FontAwesome name="plus" size={20} color="white" testID="icon-plus" />
 							</TouchableOpacity>
 						}
 					</View>
@@ -160,8 +160,9 @@ const LocalityScreen = () => {
 													<TouchableOpacity
 														onPress={() => handleVote(item.locality_track_id, 1)}
 														disabled={votingState.localityTrackId !== null}
+														testID={`upvote-button-${item.locality_track_id}`}
 													>
-														<FontAwesome name="arrow-up" size={20} color={item.user_vote === 1 ? "#6b2367" : "white"} />
+														<FontAwesome name="arrow-up" size={20} color={item.user_vote === 1 ? "#6b2367" : "white"} testID={`icon-arrow-up-${item.locality_track_id}`} />
 													</TouchableOpacity>
 												)}
 											</>
@@ -175,8 +176,9 @@ const LocalityScreen = () => {
 													<TouchableOpacity
 														onPress={() => handleVote(item.locality_track_id, -1)}
 														disabled={votingState.localityTrackId !== null}
+														testID={`downvote-button-${item.locality_track_id}`}
 													>
-														<FontAwesome name="arrow-down" size={20} color={item.user_vote === -1 ? "#6b2367" : "white"} />
+														<FontAwesome name="arrow-down" size={20} color={item.user_vote === -1 ? "#6b2367" : "white"} testID={`icon-arrow-down-${item.locality_track_id}`} />
 													</TouchableOpacity>
 												)}
 											</>
@@ -199,7 +201,8 @@ const LocalityScreen = () => {
 					localityId: String(id),
 					name: String(name),
 					existingSpotifyTrackIds
-				}} />
+				}}
+			/>
 		</>
 	);
 };

@@ -1,7 +1,7 @@
 import { localityService } from '@/api/localityService';
 import { trackService } from '@/api/trackService';
-import { TrackType } from '@/api/types/searchTracksResponse';
 import { useAuth } from '@/context/AuthContext';
+import { TrackType } from '@/types/api/searchTracksResponse';
 import { FontAwesome6 } from "@expo/vector-icons";
 import axios, { CancelTokenSource } from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
@@ -160,7 +160,7 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
     if (!isVisible || !isAuthenticated) return null;
 
     return (
-        <View style={styles.modalContainer}>
+        <View testID="search-tracks-modal" style={styles.modalContainer}>
             <TouchableWithoutFeedback onPress={closeModal} disabled={isLoading}>
                 <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
             </TouchableWithoutFeedback>
@@ -171,6 +171,7 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
                         <View style={styles.searchContainer}>
                             <FontAwesome6 name="magnifying-glass" size={18} color="#a1a1a1" style={styles.icon} />
                             <TextInput
+                                testID="search-input"
                                 style={styles.input}
                                 placeholder="What do you want to add?"
                                 value={searchText}
@@ -192,6 +193,7 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
 
                 <View style={styles.flatListContentContainer}>
                     <FlatList
+                        testID="tracks-list"
                         data={tracks}
                         ListEmptyComponent={
                             <View style={styles.flatListEmptyContainer}>
@@ -208,7 +210,7 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
                         indicatorStyle="white"
                         keyExtractor={(item) => item.spotify_id}
                         renderItem={({ item }) => (
-                            <View style={styles.trackItem}>
+                            <View style={styles.trackItem} testID={`track-item-${item.spotify_id}`}>
                                 <FastImage
                                     source={{ uri: item.cover.small || item.cover.medium || item.cover.large }}
                                     style={styles.trackImage}
@@ -223,13 +225,14 @@ export const SearchTracksModal = ({ isVisible, onClose, onTrackAdded, localityDe
                                 </View>
                                 <View style={styles.addTrackButtonWrapper}>
                                     {loadingTrack === item.spotify_id ? (
-                                        <ActivityIndicator size="small" color="#fff" />
+                                        <ActivityIndicator testID={`loading-indicator-${item.spotify_id}`} size="small" color="#fff" />
                                     ) : existingSpotifyTrackIds.includes(item.spotify_id) ? (
                                         <View style={styles.addedTrackButton}>
                                             <FontAwesome6 name="check" size={12} color="#fff" />
                                         </View>
                                     ) : (
                                         <TouchableOpacity
+                                            testID={`add-track-button-${item.spotify_id}`}
                                             onPress={() => handleAddTrack(item)}
                                             style={styles.addTrackButton}
                                             disabled={!!loadingTrack}

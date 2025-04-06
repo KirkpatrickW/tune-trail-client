@@ -19,13 +19,14 @@ export const LocalityCluster = React.memo(({ clusterFeature, mapRef }: LocalityC
 
     return (
         <Marker
+            testID="cluster-marker"
             coordinate={{
                 latitude: clusterFeature.geometry.coordinates[1],
                 longitude: clusterFeature.geometry.coordinates[0],
             }}
             anchor={{ x: 0.5, y: 0.5 }}
             onPress={handleClusterPress}>
-            <View style={styles.clusterContainer}>
+            <View testID="cluster-container" style={styles.clusterContainer}>
                 <Text style={styles.clusterText}>
                     {clusterFeature.properties.point_count}
                 </Text>

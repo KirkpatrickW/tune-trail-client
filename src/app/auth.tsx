@@ -3,7 +3,7 @@ import { SpotifyAuthModal } from '@/components/auth/SpotifyAuthModal';
 import { useAuth } from '@/context/AuthContext';
 import { parseBackendError } from '@/utils/errorUtils';
 import { FontAwesome, FontAwesome6 } from '@expo/vector-icons';
-import { AxiosError } from 'axios';
+import { isAxiosError } from 'axios';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -46,12 +46,12 @@ export default function AuthScreen() {
     const isPasswordValid = passwordError === '';
     const isFormValid = isUsernameValid && isPasswordValid && username && password;
 
-    const renderError = (error: string) => {
-        return error ? <Text style={styles.errorText}>{`• ${error}`}</Text> : null;
+    const renderError = (error: string, index?: number) => {
+        return error ? <Text key={index} style={styles.errorText}>{`• ${error}`}</Text> : null;
     };
 
     const handleBackendError = (error: unknown) => {
-        if (error instanceof AxiosError) {
+        if (isAxiosError(error)) {
             const errorDetails = error.response?.data?.detail;
             setRequestErrors(parseBackendError(errorDetails));
             return;
@@ -155,7 +155,7 @@ export default function AuthScreen() {
                             placeholderTextColor="#a1a1a1"
                             selectionColor="#6b2367"
                         />
-                        <TouchableOpacity onPress={togglePasswordVisibility} style={styles.passwordToggleIcon}>
+                        <TouchableOpacity onPress={togglePasswordVisibility} style={styles.passwordToggleIcon} testID="password-toggle">
                             <FontAwesome6 name={isPasswordVisible ? 'eye-slash' : 'eye'} size={20} color="#a1a1a1" />
                         </TouchableOpacity>
                     </View>
@@ -164,7 +164,7 @@ export default function AuthScreen() {
                         <View style={styles.errorBox}>
                             {renderError(usernameError)}
                             {renderError(passwordError)}
-                            {requestErrors.map((err, index) => renderError(err))}
+                            {requestErrors.map((err, index) => renderError(err, index))}
                         </View>
                     ) : null}
 

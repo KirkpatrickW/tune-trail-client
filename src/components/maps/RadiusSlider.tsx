@@ -36,11 +36,11 @@ const RadiusSlider = () => {
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity onPress={toggleSlider} style={styles.toggleButton} activeOpacity={0.9}>
+            <TouchableOpacity testID="radius-toggle-button" onPress={toggleSlider} style={styles.toggleButton} activeOpacity={0.9}>
                 <FontAwesome6 name={isExpanded ? "xmark" : "ruler"} size={18} color="white" />
             </TouchableOpacity>
 
-            <Animated.View style={[styles.sliderWrapper, { height: animatedHeight, opacity: animatedOpacity }]}>
+            <Animated.View testID="radius-slider-wrapper" style={[styles.sliderWrapper, { height: animatedHeight, opacity: animatedOpacity }]}>
                 <View style={styles.rotatedSlider}>
                     <Slider
                         progress={progress}

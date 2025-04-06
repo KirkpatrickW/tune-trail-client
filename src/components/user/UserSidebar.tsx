@@ -109,11 +109,11 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
     return (
         <View style={styles.modalContainer}>
             <TouchableWithoutFeedback onPress={closeModal} disabled={isLoading}>
-                <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
+                <Animated.View testID="sidebar-overlay" style={[styles.backdrop, { opacity: fadeAnim }]} />
             </TouchableWithoutFeedback>
 
-            <Animated.View style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}>
-                <View style={[styles.titleContainer, { paddingTop: insets.top }]}>
+            <Animated.View testID="user-sidebar" style={[styles.sidebar, { transform: [{ translateX: slideAnim }] }]}>
+                <View testID="sidebar-content" style={[styles.titleContainer, { paddingTop: insets.top }]}>
                     <Text style={styles.welcomeText}>Welcome,</Text>
                     <Text style={styles.usernameText}>
                         {isAuthenticated ? "@" + userDetails?.username : "Guest"}
@@ -140,6 +140,7 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
                                 <>
                                     {userDetails?.spotify_subscription !== null ? (
                                         <TouchableOpacity
+                                            testID="unlink-spotify-button"
                                             style={styles.unlinkSpotifyButton}
                                             onPress={handleUnlinkSpotify}
                                             disabled={isLoading}
@@ -153,6 +154,7 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
                                         </TouchableOpacity>
                                     ) : (
                                         <TouchableOpacity
+                                            testID="link-spotify-button"
                                             style={styles.linkSpotifyButton}
                                             onPress={() => setSpotifyModalVisible(true)}
                                             disabled={isLoading}
@@ -169,6 +171,7 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
                             }
 
                             <TouchableOpacity
+                                testID="logout-button"
                                 style={styles.logoutButton}
                                 onPress={handleLogOut}
                                 disabled={isLoading}
@@ -183,6 +186,7 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
                         </>
                     ) : (
                         <TouchableOpacity
+                            testID="sign-in-button"
                             style={styles.signinButton}
                             onPress={handleSignIn}
                             disabled={isLoading}
