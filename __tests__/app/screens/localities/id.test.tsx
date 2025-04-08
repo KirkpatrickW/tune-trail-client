@@ -21,6 +21,7 @@ jest.mock("@/api/localityService", () => {
                             large: "large1.jpg"
                         },
                         username: "user1",
+                        user_id: "user1",
                         total_votes: 10,
                         user_vote: 0
                     },
@@ -36,6 +37,7 @@ jest.mock("@/api/localityService", () => {
                             large: "large2.jpg"
                         },
                         username: "user2",
+                        user_id: "user2",
                         total_votes: 5,
                         user_vote: 1
                     }
@@ -48,7 +50,8 @@ jest.mock("@/api/localityService", () => {
 jest.mock("@/api/localityTrackService", () => {
     return {
         localityTrackService: {
-            voteOnLocalityTrack: jest.fn().mockResolvedValue({})
+            voteOnLocalityTrack: jest.fn().mockResolvedValue({}),
+            deleteLocalityTrack: jest.fn().mockResolvedValue({})
         }
     };
 });
@@ -72,7 +75,12 @@ jest.mock("@/components/tracks/SearchTracksModal", () => {
 jest.mock("@/context/AuthContext", () => {
     return {
         useAuth: () => ({
-            isAuthenticated: true
+            isAuthenticated: true,
+            userDetails: {
+                user_id: "user1",
+                is_admin: false
+            },
+            isAdmin: false
         })
     };
 });
@@ -431,5 +439,118 @@ describe("LocalityScreen", () => {
 
         // Restore the original SearchTracksModal component
         SearchTracksModalModule.SearchTracksModal = originalSearchTracksModal;
+    });
+
+    it("shows delete button only for user's own tracks", async () => {
+        const { getByTestId, queryByTestId } = render(<LocalityScreen />);
+
+        await waitFor(() => {
+            // Delete button should be visible for user1's track (track 1)
+            expect(getByTestId("delete-button-1")).toBeTruthy();
+            // Delete button should not be visible for user2's track (track 2)
+            expect(queryByTestId("delete-button-2")).toBeNull();
+        });
+    });
+
+    it("shows delete button for all tracks when user is admin", async () => {
+        // Override the auth context to make the user an admin
+        const authContext = require("@/context/AuthContext");
+        authContext.useAuth = () => ({
+            isAuthenticated: true,
+            userDetails: {
+                user_id: "user1",
+                is_admin: true
+            },
+            isAdmin: true
+        });
+
+        const { getByTestId } = render(<LocalityScreen />);
+
+        await waitFor(() => {
+            // Delete button should be visible for both tracks when user is admin
+            expect(getByTestId("delete-button-1")).toBeTruthy();
+            expect(getByTestId("delete-button-2")).toBeTruthy();
+        });
+    });
+
+    it("handles track deletion", async () => {
+        const localityTrackService = require("@/api/localityTrackService").localityTrackService;
+        const { getByTestId, queryByText } = render(<LocalityScreen />);
+
+        await waitFor(() => {
+            expect(getByTestId("delete-button-1")).toBeTruthy();
+        });
+
+        // Click the delete button
+        const deleteButton = getByTestId("delete-button-1");
+        await act(async () => {
+            fireEvent.press(deleteButton);
+        });
+
+        // Verify the delete API was called
+        await waitFor(() => {
+            expect(localityTrackService.deleteLocalityTrack).toHaveBeenCalledWith(1);
+        });
+
+        // Verify the track was removed from the list
+        await waitFor(() => {
+            expect(queryByText("Test Track 1")).toBeNull();
+        });
+    });
+
+    it("shows loading indicator while deleting", async () => {
+        const localityTrackService = require("@/api/localityTrackService").localityTrackService;
+        // Make the delete operation take some time
+        localityTrackService.deleteLocalityTrack.mockImplementationOnce(() =>
+            new Promise(resolve => setTimeout(resolve, 100))
+        );
+
+        const { getByTestId, queryByTestId } = render(<LocalityScreen />);
+
+        // Wait for the component to load and find the delete button
+        await waitFor(() => {
+            expect(getByTestId("delete-button-1")).toBeTruthy();
+        });
+
+        // Click the delete button
+        const deleteButton = getByTestId("delete-button-1");
+        await act(async () => {
+            fireEvent.press(deleteButton);
+        });
+
+        // After clicking the delete button, the delete button should be replaced with an ActivityIndicator
+        await waitFor(() => {
+            // The delete button should no longer be present
+            expect(queryByTestId("delete-button-1")).toBeNull();
+
+            // Instead, we should find the ActivityIndicator with the new testID
+            expect(getByTestId("deleting-indicator-1")).toBeTruthy();
+        });
+    });
+
+    it("disables voting buttons while deleting", async () => {
+        const localityTrackService = require("@/api/localityTrackService").localityTrackService;
+        // Make the delete operation take some time
+        localityTrackService.deleteLocalityTrack.mockImplementationOnce(() =>
+            new Promise(resolve => setTimeout(resolve, 100))
+        );
+
+        const { getByTestId } = render(<LocalityScreen />);
+
+        await waitFor(() => {
+            expect(getByTestId("delete-button-1")).toBeTruthy();
+        });
+
+        // Click the delete button
+        const deleteButton = getByTestId("delete-button-1");
+        await act(async () => {
+            fireEvent.press(deleteButton);
+        });
+
+        // Verify voting buttons are disabled
+        await waitFor(() => {
+            expect(getByTestId("upvote-button-1").props.disabled).toBe(true);
+            expect(getByTestId("downvote-button-1").props.disabled).toBe(true);
+        });
     });
 }); 

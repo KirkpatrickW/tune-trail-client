@@ -16,7 +16,7 @@ const LocalityScreen = () => {
 	const { id, name } = useLocalSearchParams();
 	const insets = useSafeAreaInsets();
 	const router = useRouter();
-	const { isAuthenticated } = useAuth();
+	const { isAuthenticated, userDetails, isAdmin } = useAuth();
 	const { currentLocality, currentTrack } = usePlayer();
 
 	const [isSearchTracksModalVisible, setIsSearchTracksModalVisible] = useState(false);
@@ -26,6 +26,7 @@ const LocalityScreen = () => {
 		localityTrackId: null,
 		voteType: null,
 	});
+	const [deletingTrackId, setDeletingTrackId] = useState<number | null>(null);
 
 	const existingSpotifyTrackIds = useMemo(() => tracks.map((track) => track.spotify_id), [tracks]);
 
@@ -73,6 +74,17 @@ const LocalityScreen = () => {
 		} catch (error) { }
 
 		setVotingState({ localityTrackId: null, voteType: null });
+	};
+
+	const handleDelete = async (localityTrackId: number) => {
+		setDeletingTrackId(localityTrackId);
+
+		try {
+			await localityTrackService.deleteLocalityTrack(localityTrackId);
+			setTracks((prevTracks) => prevTracks.filter((t) => t.locality_track_id !== localityTrackId));
+		} catch (error) { }
+
+		setDeletingTrackId(null);
 	};
 
 	const formatVoteCount = (totalVotes: number) => {
@@ -130,6 +142,8 @@ const LocalityScreen = () => {
 						keyExtractor={(item) => item.track_id}
 						renderItem={({ item, index }) => {
 							const isCurrentTrack = currentLocality?.locality_id == id && currentTrack?.track_id == item.track_id;
+							const canDelete = isAuthenticated && (userDetails?.user_id === item.user_id || isAdmin);
+							const isDeleting = deletingTrackId === item.locality_track_id;
 
 							return (
 								<View style={styles.trackItem}>
@@ -151,34 +165,51 @@ const LocalityScreen = () => {
 											</Text>
 										</View>
 									</View>
-									<View style={styles.votingContainer}>
-										{isAuthenticated && (
+									<View style={styles.actionsContainer}>
+										<View style={styles.votingContainer}>
+											{isAuthenticated && (
+												<>
+													{votingState.localityTrackId === item.locality_track_id && votingState.voteType === 1 ? (
+														<ActivityIndicator size="small" color="white" />
+													) : (
+														<TouchableOpacity
+															onPress={() => handleVote(item.locality_track_id, 1)}
+															disabled={votingState.localityTrackId !== null || isDeleting}
+															testID={`upvote-button-${item.locality_track_id}`}
+														>
+															<FontAwesome name="arrow-up" size={20} color={item.user_vote === 1 ? "#6b2367" : "white"} testID={`icon-arrow-up-${item.locality_track_id}`} />
+														</TouchableOpacity>
+													)}
+												</>
+											)}
+											<Text style={styles.voteCount}>{formatVoteCount(item.total_votes)}</Text>
+											{isAuthenticated && (
+												<>
+													{votingState.localityTrackId === item.locality_track_id && votingState.voteType === -1 ? (
+														<ActivityIndicator size="small" color="white" />
+													) : (
+														<TouchableOpacity
+															onPress={() => handleVote(item.locality_track_id, -1)}
+															disabled={votingState.localityTrackId !== null || isDeleting}
+															testID={`downvote-button-${item.locality_track_id}`}
+														>
+															<FontAwesome name="arrow-down" size={20} color={item.user_vote === -1 ? "#6b2367" : "white"} testID={`icon-arrow-down-${item.locality_track_id}`} />
+														</TouchableOpacity>
+													)}
+												</>
+											)}
+										</View>
+										{canDelete && (
 											<>
-												{votingState.localityTrackId === item.locality_track_id && votingState.voteType === 1 ? (
-													<ActivityIndicator size="small" color="white" />
+												{isDeleting ? (
+													<ActivityIndicator size="small" color="white" style={styles.deleteIcon} testID={`deleting-indicator-${item.locality_track_id}`} />
 												) : (
 													<TouchableOpacity
-														onPress={() => handleVote(item.locality_track_id, 1)}
-														disabled={votingState.localityTrackId !== null}
-														testID={`upvote-button-${item.locality_track_id}`}
+														onPress={() => handleDelete(item.locality_track_id)}
+														disabled={votingState.localityTrackId !== null || isDeleting}
+														testID={`delete-button-${item.locality_track_id}`}
 													>
-														<FontAwesome name="arrow-up" size={20} color={item.user_vote === 1 ? "#6b2367" : "white"} testID={`icon-arrow-up-${item.locality_track_id}`} />
-													</TouchableOpacity>
-												)}
-											</>
-										)}
-										<Text style={styles.voteCount}>{formatVoteCount(item.total_votes)}</Text>
-										{isAuthenticated && (
-											<>
-												{votingState.localityTrackId === item.locality_track_id && votingState.voteType === -1 ? (
-													<ActivityIndicator size="small" color="white" />
-												) : (
-													<TouchableOpacity
-														onPress={() => handleVote(item.locality_track_id, -1)}
-														disabled={votingState.localityTrackId !== null}
-														testID={`downvote-button-${item.locality_track_id}`}
-													>
-														<FontAwesome name="arrow-down" size={20} color={item.user_vote === -1 ? "#6b2367" : "white"} testID={`icon-arrow-down-${item.locality_track_id}`} />
+														<FontAwesome name="trash" size={20} color="white" style={styles.deleteIcon} testID={`icon-trash-${item.locality_track_id}`} />
 													</TouchableOpacity>
 												)}
 											</>
@@ -319,10 +350,14 @@ const styles = StyleSheet.create({
 		fontWeight: "bold",
 		color: "#fff",
 	},
+	actionsContainer: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginLeft: 10,
+	},
 	votingContainer: {
 		flexDirection: 'column',
 		alignItems: 'center',
-		marginLeft: 10,
 		paddingHorizontal: 12,
 		width: 60,
 	},
@@ -331,6 +366,9 @@ const styles = StyleSheet.create({
 		marginVertical: 4,
 		fontSize: 16,
 		textAlign: 'center',
+	},
+	deleteIcon: {
+		marginLeft: 12,
 	},
 });
 

@@ -9,4 +9,7 @@ export const localityTrackService = {
             vote_value: voteValue
         });
     },
+    deleteLocalityTrack: async (localityTrackId: number): Promise<AxiosResponse<{ message: string }>> => {
+        return await apiClient.delete<{ message: string }>(`${BASE_URL}/${localityTrackId}`);
+    }
 };
