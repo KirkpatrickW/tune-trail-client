@@ -487,7 +487,6 @@ describe('UserSidebar', () => {
 
         // Check that admin buttons are visible
         expect(getByText('Manage Users')).toBeTruthy();
-        expect(getByText('Manage Tracks')).toBeTruthy();
     });
 
     it('does not show admin buttons when user is not an admin', async () => {
@@ -508,7 +507,6 @@ describe('UserSidebar', () => {
 
         // Check that admin buttons are not visible
         expect(queryByText('Manage Users')).toBeNull();
-        expect(queryByText('Manage Tracks')).toBeNull();
     });
 
     it('handles Manage Users button press', async () => {
@@ -535,36 +533,6 @@ describe('UserSidebar', () => {
         // Check that router.push was called with the correct pathname
         expect(mockRouterPush).toHaveBeenCalledWith({
             pathname: '/admin/manage-users'
-        });
-
-        // Check that the modal was closed
-        expect(mockOnClose).toHaveBeenCalled();
-    });
-
-    it('handles Manage Tracks button press', async () => {
-        (useAuth as jest.Mock).mockReturnValue({
-            userDetails: { username: 'adminuser' },
-            isAuthenticated: true,
-            isAdmin: true,
-            setAuthData: mockSetAuthData,
-            clearAuthData: mockClearAuthData,
-        });
-
-        const { getByText } = render(
-            <UserSidebar isVisible={true} onClose={mockOnClose} />
-        );
-        await act(async () => {
-            await new Promise(resolve => setTimeout(resolve, 0));
-        });
-
-        const manageTracksButton = getByText('Manage Tracks');
-        await act(async () => {
-            fireEvent.press(manageTracksButton);
-        });
-
-        // Check that router.push was called with the correct pathname
-        expect(mockRouterPush).toHaveBeenCalledWith({
-            pathname: '/admin/manage-tracks'
         });
 
         // Check that the modal was closed

@@ -39,13 +39,7 @@ const IndexScreen = () => {
 							testID="user-button">
 							<FontAwesome6 name="user" size={20} color="white" />
 						</TouchableOpacity>
-						<TouchableOpacity
-							onPress={() => console.log("Search button pressed")}
-							style={styles.toolbarButton}
-							activeOpacity={0.9}
-							testID="search-button">
-							<FontAwesome6 name="magnifying-glass" size={20} color="white" />
-						</TouchableOpacity>
+						<View style={styles.rightSpacer} />
 					</View>
 
 					<View style={styles.locationContainer}>

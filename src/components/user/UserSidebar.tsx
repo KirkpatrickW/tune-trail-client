@@ -88,13 +88,6 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
         closeModal();
     };
 
-    const handleManageTracks = () => {
-        router.push({
-            pathname: "/admin/manage-tracks" as any
-        });
-        closeModal();
-    };
-
     const handleSpotifyAuthCode = async (authCode: string) => {
         setIsLoading(true);
         setActiveButton('linkSpotify');
@@ -142,12 +135,6 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
                                 disabled={isLoading}
                                 onPress={handleManageUsers}>
                                 <Text style={styles.navButtonText}>Manage Users</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.navButton}
-                                disabled={isLoading}
-                                onPress={handleManageTracks}>
-                                <Text style={styles.navButtonText}>Manage Tracks</Text>
                             </TouchableOpacity>
                         </>
                     )}

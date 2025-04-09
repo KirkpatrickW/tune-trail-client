@@ -32,14 +32,6 @@ const ScreenContent = () => {
                         headerShown: false,
                     }}
                 />
-                <Stack.Screen
-                    name="admin/manage-tracks"
-                    options={{
-                        animation: "fade",
-                        animationDuration: 400,
-                        headerShown: false,
-                    }}
-                />
             </Stack>
 
             <FloatingPlayer />
