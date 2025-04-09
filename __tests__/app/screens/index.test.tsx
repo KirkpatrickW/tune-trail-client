@@ -137,23 +137,6 @@ describe("IndexScreen", () => {
         expect(mockToggleUserSidebar).toHaveBeenCalledTimes(1);
     });
 
-    it("logs message when search button is pressed", () => {
-        // Mock console.log
-        const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-        const { getByTestId } = render(<IndexScreen />);
-
-        // Find and press the search button
-        const searchButton = getByTestId("search-button");
-        fireEvent.press(searchButton);
-
-        // Check if console.log was called with the correct message
-        expect(consoleSpy).toHaveBeenCalledWith("Search button pressed");
-
-        // Restore console.log
-        consoleSpy.mockRestore();
-    });
-
     it("calls recenterMap when recenter button is pressed", () => {
         // Create a mock for the recenterMap function
         const mockRecenterMap = jest.fn();

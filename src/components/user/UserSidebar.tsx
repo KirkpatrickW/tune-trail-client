@@ -14,7 +14,7 @@ interface UserSidebarProps {
 
 export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
     const router = useRouter();
-    const { userDetails, isAuthenticated, setAuthData, clearAuthData } = useAuth();
+    const { userDetails, isAuthenticated, isAdmin, setAuthData, clearAuthData } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [activeButton, setActiveButton] = useState<string | null>(null);
     const [spotifyModalVisible, setSpotifyModalVisible] = useState(false);
@@ -81,6 +81,13 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
         router.replace("/auth");
     };
 
+    const handleManageUsers = () => {
+        router.push({
+            pathname: "/admin/manage-users" as any
+        });
+        closeModal();
+    };
+
     const handleSpotifyAuthCode = async (authCode: string) => {
         setIsLoading(true);
         setActiveButton('linkSpotify');
@@ -120,17 +127,17 @@ export const UserSidebar = ({ isVisible, onClose }: UserSidebarProps) => {
                     </Text>
                 </View>
 
-                {/* TODO: This needs removed, here temporarily for admin stuffs */}
                 <View style={styles.navigationContainer}>
-                    <TouchableOpacity style={styles.navButton} disabled={isLoading}>
-                        <Text style={styles.navButtonText}>Profile</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navButton} disabled={isLoading}>
-                        <Text style={styles.navButtonText}>Settings</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.navButton} disabled={isLoading}>
-                        <Text style={styles.navButtonText}>Help</Text>
-                    </TouchableOpacity>
+                    {isAdmin && (
+                        <>
+                            <TouchableOpacity
+                                style={styles.navButton}
+                                disabled={isLoading}
+                                onPress={handleManageUsers}>
+                                <Text style={styles.navButtonText}>Manage Users</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
                 </View>
 
                 <View style={[styles.bottomContainer, { marginBottom: insets.bottom }]}>
