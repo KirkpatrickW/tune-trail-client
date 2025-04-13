@@ -1,4 +1,4 @@
-import { UserDetails } from '@/types/auth/user_details';
+import { UserDetails } from '@/types/auth/userDetails';
 import { AxiosResponse } from 'axios';
 import apiClient from './apiClient';
 

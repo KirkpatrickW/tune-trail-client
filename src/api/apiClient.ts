@@ -1,4 +1,4 @@
-import { UserDetails } from '@/types/auth/user_details';
+import { UserDetails } from '@/types/auth/userDetails';
 import { parseBackendError } from '@/utils/errorUtils';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
