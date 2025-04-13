@@ -1,5 +1,5 @@
 import { authService } from '@/api/authService';
-import { UserDetails } from '@/types/auth/user_details';
+import { UserDetails } from '@/types/auth/userDetails';
 import { parseBackendError } from '@/utils/errorUtils';
 import { isAxiosError } from 'axios';
 import React, { useEffect, useRef, useState } from 'react';

@@ -1,6 +1,6 @@
 import { CompleteSpotifyModal } from '@/components/auth/CompleteSpotifyModal';
 import SessionUnavailableModal from '@/components/auth/SessionUnavailableModal';
-import { UserDetails } from '@/types/auth/user_details';
+import { UserDetails } from '@/types/auth/userDetails';
 import * as SecureStore from 'expo-secure-store';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
